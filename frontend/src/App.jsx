@@ -7,6 +7,8 @@ import Register from './components/Register';
 import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
 import './index.css';
+import CreatePost from "../src/pages/CreatePost.jsx";
+import PostFeed from "../src/pages/PostFeed.jsx";
 
 const LearningPlans = () => (
   <motion.div
@@ -49,6 +51,11 @@ function App() {
           <Route path="/learning-plans" element={<LearningPlans />} />
           <Route path="/skill-posts" element={<SkillPosts />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="post" element={<CreatePost/>}>
+          <Route path="feed" element={<PostFeed/>}>
+
+          </Route>
+          </Route>
         </Routes>
       </div>
     </div>
