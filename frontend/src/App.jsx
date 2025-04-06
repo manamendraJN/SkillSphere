@@ -1,35 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
+import Header from './components/Header';
+import Login from './components/Login';
+import Register from './components/Register';
+import { motion } from 'framer-motion';
+import QAPage from './pages/QAPage.jsx';
+import './index.css';
+
+const LearningPlans = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="text-gray-950 dark:text-gray-600 mt-5 ml-8"
+  >
+    Learning Plans Page (TBD)
+  </motion.div>
+);
+const SkillPosts = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="text-gray-800 dark:text-gray-600 mt-5 ml-8"
+  >
+    Skill Posts Page (TBD)
+  </motion.div>
+);
+const Profile = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="text-gray-800 dark:text-gray-600 mt-5 ml-8"
+  >
+    Profile Page (TBD)
+  </motion.div>
+);
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-teal-50 ">
+      <Header />
+      <div className="pt-16 md:pl-80  ">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/q&a-form" element={<QAPage />} />
+          <Route path="/learning-plans" element={<LearningPlans />} />
+          <Route path="/skill-posts" element={<SkillPosts />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+function Home() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="text-center"
+    >
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-600 mt-16">
+        Welcome to SkillSphere
+      </h1>
+      <p className="text-gray-600 dark:text-gray-500 mt-6">
+        Explore a community of learners and experts. Ask questions, share knowledge, and grow your skills!
+      </p>
+    </motion.div>
+  );
+}
+
+export default App;
