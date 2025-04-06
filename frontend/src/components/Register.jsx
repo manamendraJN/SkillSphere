@@ -7,13 +7,57 @@ import { AlertCircle, User as UserIcon, Lock, Mail, UserPlus } from 'lucide-reac
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState(null);
+  const [passwordError, setPasswordError] = useState(null);
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Password validation function
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!hasUpperCase) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!hasLowerCase) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!hasNumber) {
+      return 'Password must contain at least one number';
+    }
+    if (!hasSpecialChar) {
+      return 'Password must contain at least one special character (e.g., !@#$%)';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setPasswordError(null);
+
+    // Validate password strength
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setPasswordError(passwordValidationError);
+      return;
+    }
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      setPasswordError('Confirm password does not match');
+      return;
+    }
+
     try {
       await register(username, password, email);
       navigate('/');
@@ -43,6 +87,17 @@ const Register = () => {
           >
             <AlertCircle className="w-5 h-5" />
             <p>{error}</p>
+          </motion.div>
+        )}
+
+        {passwordError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-orange-100 p-3 rounded-lg flex items-center space-x-2 text-orange-600 font-semibold mb-6"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <p>{passwordError}</p>
           </motion.div>
         )}
 
@@ -89,6 +144,21 @@ const Register = () => {
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-teal-600" />
             <label className="absolute -top-2 left-3 px-1 text-sm text-gray-600 bg-white peer-focus:text-teal-600 transition-all">
               Password
+            </label>
+          </div>
+
+          <div className="relative">
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm Password"
+              className="w-full p-3 pl-10 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 peer"
+              required
+            />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-teal-600" />
+            <label className="absolute -top-2 left-3 px-1 text-sm text-gray-600 bg-white peer-focus:text-teal-600 transition-all">
+              Confirm Password
             </label>
           </div>
 
