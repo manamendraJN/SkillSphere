@@ -223,7 +223,7 @@ const QuestionList = () => {
   const handleDeleteAnswer = (questionId, answerId) => {
     if (!window.confirm('Are you sure you want to delete this answer?')) return;
     axios
-      .delete(`http://localhost:8080/api/qna/questions/${questionId}/answers/${answerId}`, {
+      .delete(`http://localhost:8080/api/delete/${questionId}/answers/${answerId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       })
       .then(() => {
