@@ -24,9 +24,7 @@ public class SecurityConfig {
 
     private static final Logger LOGGER = Logger.getLogger(SecurityConfig.class.getName());
 
-    @SuppressWarnings("unused")
     private final UserDetailsService userDetailsService;
-    @SuppressWarnings("unused")
     private final JwtUtil jwtUtil;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -47,22 +45,31 @@ public class SecurityConfig {
             })
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
-                LOGGER.info("Permitting /api/auth/**");
-                auth.requestMatchers("/api/auth/**").permitAll() // Allow /login and /register
-                    .requestMatchers("/api/auth/validate").authenticated() // Require authentication for /validate
+                LOGGER.info("Setting up authorization rules...");
+                auth
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/auth/validate").authenticated()
+                    .requestMatchers("/api/posts").permitAll()
+                    .requestMatchers("/api/posts/**").permitAll()
+                    .requestMatchers("/api/**").authenticated() // Covers QnA endpoints and others
+                    .requestMatchers("/uploads/**").permitAll() // Allow public access to images
                     .anyRequest().authenticated();
             })
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        LOGGER.info("Security filter chain configured successfully.");
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        LOGGER.info("Creating BCryptPasswordEncoder bean...");
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        LOGGER.info("Creating AuthenticationManager bean...");
         return authConfig.getAuthenticationManager();
     }
 

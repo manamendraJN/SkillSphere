@@ -1,14 +1,12 @@
-import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthContext } from './context/AuthContext';
+import { motion } from 'framer-motion';
 import Header from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
-import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
+import CreatePost from './pages/CreatePost.jsx';
+import Feed from './pages/PostFeed.jsx';
 import './index.css';
-import CreatePost from "../src/pages/CreatePost.jsx";
-import PostFeed from "../src/pages/PostFeed.jsx";
 
 const LearningPlans = () => (
   <motion.div
@@ -19,6 +17,7 @@ const LearningPlans = () => (
     Learning Plans Page (TBD)
   </motion.div>
 );
+
 const SkillPosts = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -28,6 +27,7 @@ const SkillPosts = () => (
     Skill Posts Page (TBD)
   </motion.div>
 );
+
 const Profile = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -40,22 +40,18 @@ const Profile = () => (
 
 function App() {
   return (
-    <div className="min-h-screen bg-teal-50 ">
+    <div className="min-h-screen bg-teal-50">
       <Header />
-      <div className="pt-16 md:pl-80  ">
+      <div className="pt-16 md:pl-80">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Home />} />
           <Route path="/q&a-form" element={<QAPage />} />
           <Route path="/learning-plans" element={<LearningPlans />} />
-          <Route path="/skill-posts" element={<SkillPosts />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="post" element={<CreatePost/>}>
-          <Route path="feed" element={<PostFeed/>}>
-
-          </Route>
-          </Route>
+          <Route path="/skill-posts" element={<CreatePost />} />
+          <Route path="/feed" element={<Feed />} /> {/* ✅ FIXED: Moved out of nested route */}
         </Routes>
       </div>
     </div>
