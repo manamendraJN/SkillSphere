@@ -7,6 +7,7 @@ import Register from './components/Register';
 import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
 import LearningPlanPage from './pages/LearningPlanPage';
+import CreateNewLearningPlan from './components/CreateNewLearningPlan';
 import './index.css';
 
 const LearningPlans = () => (
@@ -52,6 +53,7 @@ function App() {
           <Route path="/learning-plans" element={<LearningPlans />} />  {/* This renders LearningPlans, which includes LearningPlanPage */}
           <Route path="/skill-posts" element={<SkillPosts />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/add-learning-plan" element={<CreateNewLearningPlan />} />
         </Routes>
       </div>
     </div>
