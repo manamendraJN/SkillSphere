@@ -6,6 +6,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
+import ResourceLibrary from './pages/ResourceLibrary.jsx';
 import './index.css';
 
 const LearningPlans = () => (
@@ -48,7 +49,8 @@ function App() {
           <Route path="/q&a-form" element={<QAPage />} />
           <Route path="/learning-plans" element={<LearningPlans />} />
           <Route path="/skill-posts" element={<SkillPosts />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />  
+          <Route path="/resourceLibrary" element={<ResourceLibrary />} />
         </Routes>
       </div>
     </div>
