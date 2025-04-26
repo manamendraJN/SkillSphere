@@ -24,8 +24,6 @@ const Header = memo(() => {
     { name: 'Learning Plans', icon: <BookOpen className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <BookOpen className="w-5 h-5 mr-2 text-indigo-800" />, path: 'learning-plans' },
     { name: 'Q&A Hub', icon: <HelpCircle className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <HelpCircle className="w-5 h-5 mr-2 text-indigo-800" />, path: 'q&a-form' },
     { name: 'Profile', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'profile' },
-    { name: 'Resource', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'resourceLibrary' },
-
     { name: 'Resource', icon: <Library className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <Library className="w-5 h-5 mr-2 text-indigo-800" />, path: 'resourceLibrary' },
   ];
 
