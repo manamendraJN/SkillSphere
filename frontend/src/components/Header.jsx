@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useContext, useCallback, memo } from 'reac
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Menu, LogOut, User, MessageCircle, Home, FileText, BookOpen, HelpCircle } from 'lucide-react';
+import { Bell, Menu, LogOut, User, MessageCircle, Home, FileText, BookOpen, HelpCircle, Library } from 'lucide-react';
 
 const Header = memo(() => {
   const { user, logout, loading, error } = useContext(AuthContext);
@@ -26,6 +26,7 @@ const Header = memo(() => {
     { name: 'Profile', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'profile' },
     { name: 'Resource', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'resourceLibrary' },
 
+    { name: 'Resource', icon: <Library className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <Library className="w-5 h-5 mr-2 text-indigo-800" />, path: 'resourceLibrary' },
   ];
 
   const handleLogout = useCallback(() => {
