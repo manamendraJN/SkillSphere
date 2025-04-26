@@ -24,6 +24,8 @@ const Header = memo(() => {
     { name: 'Learning Plans', icon: <BookOpen className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <BookOpen className="w-5 h-5 mr-2 text-indigo-800" />, path: 'learning-plans' },
     { name: 'Q&A Hub', icon: <HelpCircle className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <HelpCircle className="w-5 h-5 mr-2 text-indigo-800" />, path: 'q&a-form' },
     { name: 'Profile', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'profile' },
+    { name: 'Resource', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'resourceLibrary' },
+
   ];
 
   const handleLogout = useCallback(() => {
@@ -193,7 +195,7 @@ const Header = memo(() => {
         initial={{ x: '-100%' }}
         animate={{ x: isSidebarOpen || window.innerWidth >= 768 ? 0 : '-100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed top-24 left-5 w-72 bg-white shadow-2xl border-r border-teal-100 z-40 h-96 rounded-3xl"
+        className="fixed top-24 left-5 w-72 bg-white shadow-2xl border-r border-teal-100 z-40 h-100 rounded-3xl"
       >
         <div className="p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
