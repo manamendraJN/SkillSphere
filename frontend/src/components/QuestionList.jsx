@@ -7,68 +7,48 @@ import {
   CheckCircle, MessageSquare, Send, User as UserIcon, AlertCircle, Search
 } from 'lucide-react';
 
-const QuestionList = () => {
+const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQuestions, error, setError }) => {
   const { user } = useContext(AuthContext);
-  const [questions, setQuestions] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [answerCounts, setAnswerCounts] = useState({}); // New state for answer counts
+  const [answerCounts, setAnswerCounts] = useState({});
   const [newAnswer, setNewAnswer] = useState({});
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerContent, setEditAnswerContent] = useState('');
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Please log in to view questions');
-      return;
-    }
-
-    // Fetch questions
-    axios
-      .get('http://localhost:8080/api/getall/questions', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setQuestions(response.data);
-        setFilteredQuestions(response.data);
-        setError(null);
-
-        // Fetch answer counts for each question
-        response.data.forEach((question) => {
-          axios
-            .get(`http://localhost:8080/api/get/${question.id}/answers`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((res) => {
-              setAnswerCounts((prev) => ({
-                ...prev,
-                [question.id]: res.data.length, // Store the count of answers
-              }));
-            })
-            .catch((err) => {
-              console.error(`Error fetching answers for question ${question.id}:`, err);
-            });
-        });
-      })
-      .catch((error) => {
-        console.error('Error fetching questions:', error);
-        setError('Failed to load questions');
-      });
-  }, []);
-
+  // Update filtered questions based on search term
   useEffect(() => {
     const filtered = questions.filter((question) =>
       question.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredQuestions(filtered);
-  }, [searchTerm, questions]);
+  }, [searchTerm, questions, setFilteredQuestions]);
+
+  // Fetch answer counts for all questions
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || questions.length === 0) return;
+
+    questions.forEach((question) => {
+      axios
+        .get(`http://localhost:8080/api/get/${question.id}/answers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setAnswerCounts((prev) => ({
+            ...prev,
+            [question.id]: res.data.length,
+          }));
+        })
+        .catch((err) => {
+          console.error(`Error fetching answers for question ${question.id}:`, err);
+        });
+    });
+  }, [questions]);
 
   const userQuestions = filteredQuestions.filter((question) => user && question.userId === user.id);
   const otherQuestions = filteredQuestions.filter((question) => user && question.userId !== user.id);
@@ -167,7 +147,7 @@ const QuestionList = () => {
         }));
         setAnswerCounts((prev) => ({
           ...prev,
-          [questionId]: (prev[questionId] || 0) + 1, // Increment answer count
+          [questionId]: (prev[questionId] || 0) + 1,
         }));
         setNewAnswer((prev) => ({ ...prev, [questionId]: '' }));
       })
@@ -264,7 +244,7 @@ const QuestionList = () => {
         }));
         setAnswerCounts((prev) => ({
           ...prev,
-          [questionId]: prev[questionId] - 1, // Decrement answer count
+          [questionId]: prev[questionId] - 1,
         }));
         setError(null);
       })
