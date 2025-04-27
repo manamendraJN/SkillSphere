@@ -541,9 +541,6 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-teal-800 flex items-center">
-          <MessageSquare className="w-6 h-6 mr-1 text-teal-600" /> Questions
-        </h2>
         <div className="relative w-1/4">
           <input
             type="text"
