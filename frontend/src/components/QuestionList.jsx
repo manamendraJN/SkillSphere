@@ -2,9 +2,9 @@ import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Eye, Trash2, Edit2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, 
-  CheckCircle, MessageSquare, Send, User as UserIcon, AlertCircle, Search 
+import {
+  Eye, Trash2, Edit2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown,
+  CheckCircle, MessageSquare, Send, User as UserIcon, AlertCircle, Search
 } from 'lucide-react';
 
 const QuestionList = () => {
@@ -18,6 +18,7 @@ const QuestionList = () => {
   const [editDescription, setEditDescription] = useState('');
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [answerCounts, setAnswerCounts] = useState({}); // New state for answer counts
   const [newAnswer, setNewAnswer] = useState({});
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerContent, setEditAnswerContent] = useState('');
@@ -29,6 +30,7 @@ const QuestionList = () => {
       return;
     }
 
+    // Fetch questions
     axios
       .get('http://localhost:8080/api/getall/questions', {
         headers: { Authorization: `Bearer ${token}` },
@@ -37,6 +39,23 @@ const QuestionList = () => {
         setQuestions(response.data);
         setFilteredQuestions(response.data);
         setError(null);
+
+        // Fetch answer counts for each question
+        response.data.forEach((question) => {
+          axios
+            .get(`http://localhost:8080/api/get/${question.id}/answers`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((res) => {
+              setAnswerCounts((prev) => ({
+                ...prev,
+                [question.id]: res.data.length, // Store the count of answers
+              }));
+            })
+            .catch((err) => {
+              console.error(`Error fetching answers for question ${question.id}:`, err);
+            });
+        });
       })
       .catch((error) => {
         console.error('Error fetching questions:', error);
@@ -51,7 +70,6 @@ const QuestionList = () => {
     setFilteredQuestions(filtered);
   }, [searchTerm, questions]);
 
-  // Split filtered questions into user's questions and others' questions
   const userQuestions = filteredQuestions.filter((question) => user && question.userId === user.id);
   const otherQuestions = filteredQuestions.filter((question) => user && question.userId !== user.id);
 
@@ -90,6 +108,11 @@ const QuestionList = () => {
           const newAnswers = { ...prev };
           delete newAnswers[id];
           return newAnswers;
+        });
+        setAnswerCounts((prev) => {
+          const newCounts = { ...prev };
+          delete newCounts[id];
+          return newCounts;
         });
         setError(null);
       })
@@ -141,6 +164,10 @@ const QuestionList = () => {
         setAnswers((prev) => ({
           ...prev,
           [questionId]: [...(prev[questionId] || []), response.data],
+        }));
+        setAnswerCounts((prev) => ({
+          ...prev,
+          [questionId]: (prev[questionId] || 0) + 1, // Increment answer count
         }));
         setNewAnswer((prev) => ({ ...prev, [questionId]: '' }));
       })
@@ -235,6 +262,10 @@ const QuestionList = () => {
           ...prev,
           [questionId]: prev[questionId].filter((a) => a.id !== answerId),
         }));
+        setAnswerCounts((prev) => ({
+          ...prev,
+          [questionId]: prev[questionId] - 1, // Decrement answer count
+        }));
         setError(null);
       })
       .catch((error) => {
@@ -243,7 +274,6 @@ const QuestionList = () => {
       });
   };
 
-  // Render questions section
   const renderQuestions = (questions, sectionTitle) => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-teal-800 flex items-center">
@@ -251,7 +281,7 @@ const QuestionList = () => {
       </h3>
       {questions.length === 0 ? (
         <p className="text-gray-700 text-sm flex items-center">
-          <MessageSquare className="w-4 h-4 mr-1 text-teal-600" /> 
+          <MessageSquare className="w-4 h-4 mr-1 text-teal-600" />
           {searchTerm ? 'No questions match your search.' : `No ${sectionTitle.toLowerCase()}.`}
         </p>
       ) : (
@@ -323,7 +353,9 @@ const QuestionList = () => {
                       ) : (
                         <ChevronDown className="w-4 h-4 mr-1" />
                       )}
-                      {expandedQuestionId === question.id ? 'Hide Answers' : `Show Answers (${answers[question.id]?.length || 0})`}
+                      {expandedQuestionId === question.id
+                        ? 'Hide Answers'
+                        : `Show Answers (${answerCounts[question.id] || 0})`}
                     </motion.button>
                     {user && question.userId === user.id && (
                       <div className="flex space-x-1">
