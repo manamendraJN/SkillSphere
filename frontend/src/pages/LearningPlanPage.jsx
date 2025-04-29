@@ -146,7 +146,14 @@ const LearningPlanPage = () => {
             >
               ➕ Create New Plan
             </button>
-            
+            <button
+              onClick={() => setShowMyPlansOnly(!showMyPlansOnly)}
+              className={`px-4 py-2 rounded-full ${
+                showMyPlansOnly ? 'bg-[#004d40]' : 'bg-[#00796b]'
+              } text-white shadow hover:opacity-90`}
+            >
+              {showMyPlansOnly ? 'Show All' : 'Show My Plans'}
+            </button>
           </div>
         </div>
 
