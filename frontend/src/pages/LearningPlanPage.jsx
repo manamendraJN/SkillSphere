@@ -14,6 +14,7 @@ const LearningPlanPage = () => {
   const [editPlanId, setEditPlanId] = useState(null);
   const [editedPlanData, setEditedPlanData] = useState({});
   const [showMyPlansOnly, setShowMyPlansOnly] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const getInitial = (username) => {
@@ -86,6 +87,8 @@ const LearningPlanPage = () => {
       fetchLearningPlans();
       setEditPlanId(null);
       setEditedPlanData({});
+      setSuccessMessage('✅ Plan updated successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000); // Message disappears after 3 seconds
     } catch (error) {
       console.error('Error updating learning plan:', error);
     }
