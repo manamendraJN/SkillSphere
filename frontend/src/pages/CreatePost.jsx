@@ -61,19 +61,19 @@ const CreatePost = () => {
     console.log("Token being sent:", token);
     if (!token) {
       setError("Please log in to create a post.");
-      toast.error("Please log in to create a post."); // Error toast
+      toast.error("Please log in to create a post."); 
       return;
     }
 
     if (!description.trim()) {
       setError("Post content can't be empty.");
-      toast.error("Post content can't be empty."); // Error toast
+      toast.error("Post content can't be empty."); 
       return;
     }
 
     if (images.length > 3) {
       setError("You can upload up to 3 images only.");
-      toast.error("You can upload up to 3 images only."); // Error toast
+      toast.error("You can upload up to 3 images only."); 
       return;
     }
 

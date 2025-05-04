@@ -7,6 +7,7 @@ import QAPage from './pages/QAPage.jsx';
 import CreatePost from './pages/CreatePost.jsx';
 import Feed from './pages/PostFeed.jsx'; // Make sure this path is correct
 import './index.css';
+import { Toaster } from 'react-hot-toast';
 
 const LearningPlans = () => (
   <motion.div
@@ -62,6 +63,7 @@ function Home() {
 function App() {
   return (
     <div className="min-h-screen bg-teal-50">
+      <Toaster />
       <Header />
       <div className="pt-16 md:pl-80">
         <Routes>
