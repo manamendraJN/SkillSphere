@@ -112,7 +112,7 @@ const Feed = () => {
 
       setCommentTexts((prev) => ({ ...prev, [postId]: "" }));
       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
-      fetchPosts(); // if you show comments later
+      fetchPosts(); // refresh comments
     } catch (err) {
       alert("Failed to post comment.");
     }
@@ -120,8 +120,6 @@ const Feed = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-10 space-y-6 px-4">
-      {/* <h2 className="text-2xl font-bold text-gray-800">Feed</h2> */}
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
@@ -137,6 +135,7 @@ const Feed = () => {
         posts.map((post) => {
           const isOwner = user && post.userId === user.id;
           const isEditing = editingPostId === post.id;
+          const isLiked = post.likedUsers?.includes(user?.id);
 
           return (
             <motion.div
@@ -243,12 +242,19 @@ const Feed = () => {
               )}
 
               {/* Like / Comment / Share */}
-              <div className="flex justify-around border-t border-gray-200 pt-3 text-sm text-gray-600">
+              <div className="flex justify-around border-t border-gray-200 pt-3 text-sm">
                 <button
                   onClick={() => handleLike(post.id)}
-                  className="flex items-center gap-1 hover:text-blue-600 transition"
+                  className={`flex items-center gap-1 transition ${
+                    isLiked
+                      ? "text-green-600"
+                      : "text-gray-600 hover:text-green-600"
+                  }`}
                 >
-                  <ThumbsUp size={16} />
+                  <ThumbsUp
+                    size={16}
+                    className={`${isLiked ? "fill-green-600" : ""}`}
+                  />
                   {post.likes} Like
                 </button>
                 <button
@@ -258,12 +264,12 @@ const Feed = () => {
                       [post.id]: !prev[post.id],
                     }))
                   }
-                  className="flex items-center gap-1 hover:text-blue-600 transition"
+                  className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition"
                 >
                   <MessageCircle size={16} />
                   Comment
                 </button>
-                <button className="flex items-center gap-1 hover:text-blue-600 transition">
+                <button className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition">
                   <Share2 size={16} />
                   Share
                 </button>
