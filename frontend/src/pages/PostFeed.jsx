@@ -34,7 +34,13 @@ const Feed = () => {
       const res = await axios.get("http://localhost:8080/api/posts", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPosts(res.data);
+
+      const modifiedPosts = res.data.map((p) => ({
+        ...p,
+        showFull: false,
+      }));
+
+      setPosts(modifiedPosts);
       setError("");
     } catch (err) {
       setError("Failed to load posts. Please try again.");
@@ -112,7 +118,7 @@ const Feed = () => {
 
       setCommentTexts((prev) => ({ ...prev, [postId]: "" }));
       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
-      fetchPosts(); // refresh comments
+      fetchPosts();
     } catch (err) {
       alert("Failed to post comment.");
     }
@@ -140,17 +146,17 @@ const Feed = () => {
           return (
             <motion.div
               key={post.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
               className="bg-white rounded-2xl shadow-md p-6"
             >
-              {/* User Info */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <img
                     src={post.user?.profilePicture || "/dummy-profile.png"}
                     alt="User"
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-11 h-11 rounded-full object-cover ring-2 ring-green-500"
                   />
                   <div>
                     <p className="font-semibold text-gray-800">
@@ -209,7 +215,31 @@ const Feed = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-700 mb-4">{post.description}</p>
+                <div className="text-gray-700 mb-4">
+                  {post.description.length > 150 ? (
+                    <>
+                      {post.showFull
+                        ? post.description
+                        : post.description.slice(0, 150) + "... "}
+                      <button
+                        onClick={() =>
+                          setPosts((prevPosts) =>
+                            prevPosts.map((p) =>
+                              p.id === post.id
+                                ? { ...p, showFull: !p.showFull }
+                                : p
+                            )
+                          )
+                        }
+                        className="text-blue-600 font-medium hover:underline"
+                      >
+                        {post.showFull ? "See less" : "See more"}
+                      </button>
+                    </>
+                  ) : (
+                    post.description
+                  )}
+                </div>
               )}
 
               {post.imageUrls?.length > 0 ? (
@@ -241,20 +271,14 @@ const Feed = () => {
                 />
               )}
 
-              {/* Like / Comment / Share */}
-              <div className="flex justify-around border-t border-gray-200 pt-3 text-sm">
+              <div className="flex justify-around border-t border-gray-200 pt-3 text-sm text-gray-600">
                 <button
                   onClick={() => handleLike(post.id)}
                   className={`flex items-center gap-1 transition ${
-                    isLiked
-                      ? "text-green-600"
-                      : "text-gray-600 hover:text-green-600"
+                    isLiked ? "text-green-600 font-semibold" : "hover:text-green-600"
                   }`}
                 >
-                  <ThumbsUp
-                    size={16}
-                    className={`${isLiked ? "fill-green-600" : ""}`}
-                  />
+                  <ThumbsUp size={16} />
                   {post.likes} Like
                 </button>
                 <button
@@ -264,18 +288,17 @@ const Feed = () => {
                       [post.id]: !prev[post.id],
                     }))
                   }
-                  className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition"
+                  className="flex items-center gap-1 hover:text-green-600 transition"
                 >
                   <MessageCircle size={16} />
                   Comment
                 </button>
-                <button className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition">
+                <button className="flex items-center gap-1 hover:text-green-600 transition">
                   <Share2 size={16} />
                   Share
                 </button>
               </div>
 
-              {/* Comment box */}
               {commentBoxOpen[post.id] && (
                 <div className="mt-3 flex flex-col gap-2">
                   <textarea
@@ -293,7 +316,7 @@ const Feed = () => {
                   <div className="flex justify-end">
                     <button
                       onClick={() => handlePostComment(post.id)}
-                      className="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition"
+                      className="bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600 transition"
                     >
                       Post
                     </button>
