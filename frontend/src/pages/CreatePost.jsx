@@ -5,6 +5,7 @@ import { Image, Video, Send, X, AlertCircle, PlusCircle } from "lucide-react";
 import { AuthContext } from '../context/AuthContext';
 import { toast } from "react-hot-toast"; // Importing react-hot-toast
 
+
 const CreatePost = () => {
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
@@ -112,8 +113,8 @@ const CreatePost = () => {
       setError("");
       setIsFormOpen(false);
 
-      // Display success toast
-      toast.success("Post created successfully!"); // Success toast
+      
+      toast.success("Post created successfully!"); 
     } catch (error) {
       console.error("Error creating post:", {
         status: error.response?.status,
