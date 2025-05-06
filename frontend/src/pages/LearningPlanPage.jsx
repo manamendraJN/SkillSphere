@@ -48,7 +48,6 @@ const LearningPlanPage = () => {
         await axios.delete(`http://localhost:8080/api/learning-plans/${planToDelete}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         setLearningPlans(learningPlans.filter(plan => plan.id !== planToDelete));
         setShowConfirmDelete(false);
         setPlanToDelete(null);
@@ -88,7 +87,7 @@ const LearningPlanPage = () => {
       setEditPlanId(null);
       setEditedPlanData({});
       setSuccessMessage('✅ Plan updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000); // Message disappears after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error updating learning plan:', error);
     }
@@ -106,20 +105,54 @@ const LearningPlanPage = () => {
     console.log('Add comment:', comment, 'Resource:', resourceLink, 'for plan:', planId);
   };
 
-  const handleMarkComplete = (planId) => {
-    console.log('Mark plan as complete:', planId);
+  const handleUpdateComment = async (planId, commentId) => {
+    await axios.put(`http://localhost:8080/api/comments/${commentId}`, {
+      text: editedCommentText
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setEditingCommentId(null);
+    const response = await axios.get(`http://localhost:8080/api/learning-plans/${planId}/comments`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCommentsByPlan((prev) => ({ ...prev, [planId]: response.data }));
   };
 
+  const handleMarkComplete = async (planId) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/learning-plans/complete/${planId}`,
+        null,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      // Update only the modified plan in local state to avoid full refresh delay
+      setLearningPlans((prevPlans) =>
+        prevPlans.map((plan) =>
+          plan.id === planId ? response.data : plan
+        )
+      );
+  
+      setSuccessMessage('✅ Plan marked as completed!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error marking plan as completed:', error);
+    }
+  };
+  
+  
   const filteredPlans = learningPlans.filter((plan) => {
-    const matchesSearch = plan.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm === '' || plan.title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesUser = !showMyPlansOnly || (user?.username && plan.username === user.username);
     return matchesSearch && matchesUser;
   });
+  
 
   return (
     <div className="p-8 min-h-screen font-sans bg-gray-50">
       <div className="max-w-5xl mx-auto mt-4">
-        {/* Success Message */}
         {successMessage && (
           <div className="mb-4 p-3 text-green-800 bg-green-100 rounded-lg text-center font-semibold shadow">
             {successMessage}
@@ -166,41 +199,57 @@ const LearningPlanPage = () => {
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center font-bold text-lg mr-4">
+                    <div className="bg-[#00796b] text-white rounded-full w-10 h-10 flex justify-center items-center mr-4">
                       {getInitial(plan.username)}
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                        {plan.title}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        🗓 Deadline: {plan.deadline || 'No deadline'}
-                      </p>
+                    <div className="flex flex-col">
+                    <h3 className="text-xl font-semibold flex items-center">
+  {plan.title}
+  {plan.completed && (
+    <span className="ml-3 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+      Completed
+    </span>
+  )}
+</h3>
+
+<p className="text-sm text-gray-600">{plan.description || "No description available."}</p>
+
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div>
                     <button
                       onClick={() => toggleExpand(plan.id)}
-                      className="text-[#00796b] flex items-center px-3 py-1 bg-[#e0f2f1] hover:bg-[#b2dfdb] rounded-full transition"
+                      className="px-4 py-2 bg-[#00796b] text-white rounded-full hover:bg-[#004d40]"
                     >
                       {expandedPlanId === plan.id ? (
-                        <>
-                          <ChevronUp className="w-4 h-4 mr-1" /> Show Less
-                        </>
+                        <ChevronUp size={18} />
                       ) : (
-                        <>
-                          <ChevronDown className="w-4 h-4 mr-1" /> Show More
-                        </>
+                        <ChevronDown size={18} />
                       )}
                     </button>
+                  </div>
+                </div>
 
-                    {/* Show Edit/Delete ONLY if the user is the owner */}
-                    {user?.username === plan.username && (
-                      <>
-                        <button
+                {expandedPlanId === plan.id && (
+                  <div className="mt-4">
+                    <div className="flex items-center gap-1">
+                    <button
+  onClick={() => handleMarkComplete(plan.id)}
+  disabled={plan.completed}
+  className={`px-6 py-2 rounded-full shadow transition ${
+    plan.completed
+      ? 'bg-gray-400 cursor-not-allowed'
+      : 'bg-[#00796b] text-white hover:bg-[#004d40]'
+  }`}
+>
+  {plan.completed ? 'Completed' : 'Mark Complete'}
+</button>
+
+                      {plan.username === user?.username && (
+                        <><button
                           onClick={() => handleEditClick(plan)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Edit Plan"
+                          className="bg-[#66bb6a] text-white px-2 py-2 rounded-full shadow hover:opacity-90 transition mr-0"
+
                         >
                           <Pencil size={22} />
                         </button>
@@ -208,7 +257,7 @@ const LearningPlanPage = () => {
                           onClick={() => {
                             setPlanToDelete(plan.id);
                             setShowConfirmDelete(true);
-                          }}
+                          } }
                           className="text-red-600 hover:text-red-800"
                           title="Delete Plan"
                         >
@@ -311,11 +360,11 @@ const LearningPlanPage = () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-xl text-gray-500">No learning plans found</div>
+            <div className="text-center text-lg text-gray-600">No learning plans found.</div>
           )}
         </div>
       </div>
-
+      
       {/* Delete Confirmation Modal */}
       {showConfirmDelete && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
