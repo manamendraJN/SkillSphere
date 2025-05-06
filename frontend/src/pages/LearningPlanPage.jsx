@@ -336,9 +336,8 @@ const LearningPlanPage = () => {
                           className="bg-[#66bb6a] text-white px-2 py-2 rounded-full shadow hover:opacity-90 transition mr-0"
 
                         >
-                          <Pencil size={22} />
-                        </button>
-                        <button
+                          <Pencil size={18} />
+                        </button><button
                           onClick={() => {
                             setPlanToDelete(plan.id);
                             setShowConfirmDelete(true);
@@ -346,98 +345,181 @@ const LearningPlanPage = () => {
                           className="text-red-600 hover:text-red-800"
                           title="Delete Plan"
                         >
-                          <Trash2 size={22} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                            <Trash2 size={22} />
+                          </button></>
+              
+                      )}
+                    </div>
 
-                {expandedPlanId === plan.id && (
-                  <div className="mt-5 border-t pt-4 text-gray-700 space-y-3 relative">
-                    {editPlanId === plan.id ? (
-                      <div className="space-y-3">
-                        <input
-                          type="text"
-                          name="title"
-                          value={editedPlanData.title}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded"
-                          placeholder="Title"
-                        />
-                        <textarea
-                          name="description"
-                          value={editedPlanData.description}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded"
-                          placeholder="Description"
-                        />
-                        <input
-                          type="text"
-                          name="duration"
-                          value={editedPlanData.duration}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded"
-                          placeholder="Duration"
-                        />
-                        <input
-                          type="date"
-                          name="deadline"
-                          value={editedPlanData.deadline}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded"
-                        />
-                        <input
-                          type="text"
-                          name="status"
-                          value={editedPlanData.status}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded"
-                          placeholder="Status"
-                        />
-
-                        <div className="flex space-x-4 mt-3">
-                          <button
-                            onClick={() => handleSaveEdit(plan.id)}
-                            className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600"
-                          >
-                            💾 Save
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="bg-gray-400 text-white px-4 py-2 rounded-full hover:bg-gray-500"
-                          >
-                            ❌ Cancel
-                          </button>
+                  {editPlanId === plan.id ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block">Title</label>
+                          <input
+                            type="text"
+                            name="title"
+                            value={editedPlanData.title || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded-md shadow"
+                          />
                         </div>
+                        <div>
+                          <label className="block">Description</label>
+                          <textarea
+                            name="description"
+                            value={editedPlanData.description || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded-md shadow"
+                          />
+                        </div>
+                        <div>
+                          <label className="block">Duration</label>
+                          <input
+                            type="text"
+                            name="duration"
+                            value={editedPlanData.duration || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded-md shadow"
+                          />
+                        </div>
+                        <div>
+                          <label className="block">Deadline</label>
+                          <input
+                            type="date"
+                            name="deadline"
+                            value={editedPlanData.deadline || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded-md shadow"
+                          />
+                        </div>
+                        <div>
+                          <label className="block">Status</label>
+                          <input
+                            type="text"
+                            name="status"
+                            value={editedPlanData.status || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border rounded-md shadow"
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleSaveEdit(plan.id)}
+                          className="bg-teal-500 text-white px-6 py-2 rounded-full shadow hover:bg-teal-600"
+                        >
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="bg-gray-500 text-white px-6 py-2 rounded-full shadow hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     ) : (
-                      <>
-                        <p><strong>Description:</strong> {plan.description || 'No description'}</p>
-                        <p><strong>Duration:</strong> {plan.duration || 'Not specified'} hrs</p>
-                        <p><strong>Status:</strong> {plan.status || 'Unknown'}</p>
-                        <p><strong>Modules:</strong> {plan.modules?.join(', ') || 'No modules assigned'}</p>
-                        <p>
-                          <strong>Progress:</strong>{' '}
-                          {plan.completed ? (
-                            <span className="text-green-600 font-semibold">Completed ✅</span>
-                          ) : (
-                            <button
-                              onClick={() => handleMarkComplete(plan.id)}
-                              className="bg-green-500 text-white px-3 py-1 rounded-full text-xs hover:bg-green-600"
-                            >
-                              Mark Complete
-                            </button>
-                          )}
-                        </p>
-                        <div className="mt-4">
-                          <button
-                            onClick={() => handleAddComment(plan.id, 'Add a comment...', 'http://example.com')}
-                            className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600"
-                          >
-                            💬 Add Comment
-                          </button>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold">Learning Plan Details:</h4>
+                          <p>Duration: {plan.duration}</p>
+                          <p>Deadline: {plan.deadline}</p>
+                          <p>Status: {plan.status}</p>
+                          <p><strong>Modules:</strong> {plan.modules?.join(', ') || 'No modules assigned'}</p>
                         </div>
+                        <div className="mt-6 space-y-4">
+  <h4 className="text-lg font-semibold text-gray-700">💬 Comments</h4>
+  
+  {/* Existing Comments */}
+  {(commentsByPlan[plan.id] || []).map((comment) => (
+    <div
+      key={comment.id}
+      className="bg-gray-100 p-4 rounded-lg shadow flex justify-between items-start"
+    >
+      <div>
+        <p className="text-sm font-medium text-gray-800">{comment.username}</p>
+        {editingCommentId === comment.id ? (
+          <>
+            <textarea
+              value={editedCommentText}
+              onChange={(e) => setEditedCommentText(e.target.value)}
+              className="w-full p-2 border rounded shadow my-2"
+            />
+            <button
+              onClick={() => handleUpdateComment(plan.id, comment.id)}
+              className="bg-blue-500 text-white px-4 py-1 rounded mr-2"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditingCommentId(null)}
+              className="bg-gray-500 text-white px-4 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <p className="text-sm text-gray-700">{comment.message}</p>
+        )}
+        {comment.resourceLink && (
+          <a
+            href={comment.resourceLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 text-xs"
+          >
+            📎 {comment.resourceLink}
+          </a>
+        )}
+      </div>
+      {comment.username === user?.username && (
+        <div className="space-x-2 ml-4">
+          <button
+            onClick={() => {
+              setEditingCommentId(comment.id);
+              setEditedCommentText(comment.message);
+            }}
+            className="text-blue-600 hover:underline"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteComment(plan.id, comment.id)}
+            className="text-red-600 hover:underline"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  ))}
+
+  {/* Add New Comment */}
+  <div className="mt-4">
+    <textarea
+      placeholder="Add your comment..."
+      value={newCommentText[plan.id] || ''}
+      onChange={(e) =>
+        setNewCommentText((prev) => ({ ...prev, [plan.id]: e.target.value }))
+      }
+      className="w-full p-2 border rounded shadow mb-2"
+    />
+    <input
+      type="text"
+      placeholder="Optional: Resource link"
+      value={newResourceLink[plan.id] || ''}
+      onChange={(e) =>
+        setNewResourceLink((prev) => ({ ...prev, [plan.id]: e.target.value }))
+      }
+      className="w-full p-2 border rounded shadow mb-2"
+    />
+    <button
+      onClick={() => handleAddComment(plan.id)}
+      className="bg-[#00796b] text-white px-4 py-2 rounded-full shadow hover:bg-[#004d40]"
+    >
+      Post Comment
+    </button>
+  </div>
+</div>
+
+                      </div>
                     )}
                   </div>
                 )}
