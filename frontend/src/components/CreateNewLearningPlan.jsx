@@ -76,13 +76,16 @@ const CreateNewLearningPlan = () => {
           onChange={(e) => setDeadline(e.target.value)}
           min={today} // Ensure the deadline is a future date
         />
-        <input
-          type="text"
-          placeholder="Status (Not Started/In Progress/Completed)"
+        <select
           className="border p-2"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-        />
+        >
+          <option value="">-- Select Status --</option>
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
         <input
           type="text"
           placeholder="Modules (comma-separated)"
