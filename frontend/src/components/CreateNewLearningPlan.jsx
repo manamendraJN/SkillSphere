@@ -13,6 +13,9 @@ const CreateNewLearningPlan = () => {
   const [modules, setModules] = useState('');
   const navigate = useNavigate();
 
+  // Get today's date formatted as YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+
   const handleAdd = async () => {
     if (!title || !description || !duration || !deadline || !status || !modules) {
       return alert('Please fill out all fields');
@@ -20,21 +23,21 @@ const CreateNewLearningPlan = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/learning-plans', // Corrected URL
+        'http://localhost:8080/api/learning-plans',
         {
           title,
           description,
           duration,
           deadline,
           status,
-          modules: modules.split(',').map((m) => m.trim()), // Ensure modules are correctly formatted
+          modules: modules.split(',').map((m) => m.trim()),
         },
         {
-          headers: { Authorization: `Bearer ${token}` }, // Authorization header
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log('Learning plan created:', response.data); // Optional: Log the response data
-      navigate('/learning-plans'); // Navigate back to the learning plans page
+      console.log('Learning plan created:', response.data);
+      navigate('/learning-plans');
     } catch (error) {
       console.error('Error adding learning plan:', error);
     }
@@ -67,11 +70,11 @@ const CreateNewLearningPlan = () => {
           onChange={(e) => setDuration(e.target.value)}
         />
         <input
-          type="text"
-          placeholder="Deadline (YYYY-MM-DD)"
+          type="date"
           className="border p-2"
           value={deadline}
           onChange={(e) => setDeadline(e.target.value)}
+          min={today} // Ensure the deadline is a future date
         />
         <input
           type="text"
