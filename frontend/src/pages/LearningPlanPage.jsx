@@ -16,6 +16,11 @@ const LearningPlanPage = () => {
   const [showMyPlansOnly, setShowMyPlansOnly] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const [commentsByPlan, setCommentsByPlan] = useState({});
+  const [newCommentText, setNewCommentText] = useState({});
+  const [newResourceLink, setNewResourceLink] = useState({});
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState('');
 
   const getInitial = (username) => {
     return username && username.length > 0 ? username.charAt(0).toUpperCase() : 'U';
@@ -38,10 +43,54 @@ const LearningPlanPage = () => {
     fetchLearningPlans();
   }, [loading, token]);
 
-  const toggleExpand = (planId) => {
-    setExpandedPlanId(expandedPlanId === planId ? null : planId);
-  };
+  useEffect(() => {
+    if (learningPlans.length > 0 && token) {
+      learningPlans.forEach(async (plan) => {
+        try {
+          const commentsResponse = await axios.get(
+            `http://localhost:8080/api/learning-plans/${plan.id}/comments`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setCommentsByPlan((prev) => ({
+            ...prev,
+            [plan.id]: commentsResponse.data || [],
+          }));
+        } catch (error) {
+          console.error('Error fetching comments:', error);
+        }
+      });
+    }
+  }, [learningPlans, token]);
+  
 
+  const toggleExpand = async (planId) => {
+    if (expandedPlanId === planId) {
+      setExpandedPlanId(null);
+    } else {
+      setExpandedPlanId(planId);
+  
+      try {
+        const [planResponse, commentsResponse] = await Promise.all([
+          axios.get(`http://localhost:8080/api/learning-plans/${planId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://localhost:8080/api/learning-plans/${planId}/comments`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+  
+        // Store the comments in the state
+        setCommentsByPlan((prev) => ({
+          ...prev,
+          [planId]: commentsResponse.data || [],
+        }));
+      } catch (error) {
+        console.log('Error fetching plan details or comments:', error);
+      }
+    }
+  };
   const handleDeletePlan = async () => {
     if (planToDelete) {
       try {
@@ -101,8 +150,44 @@ const LearningPlanPage = () => {
     }));
   };
 
-  const handleAddComment = (planId, comment, resourceLink) => {
-    console.log('Add comment:', comment, 'Resource:', resourceLink, 'for plan:', planId);
+  const handleAddComment = async (planId) => {
+    const newComment = newCommentText[planId];
+    const resourceLink = newResourceLink[planId];
+    const token = localStorage.getItem('token'); // ✅ Get from storage
+  
+    if (!newComment) return alert('Please enter a comment');
+    if (!token) return alert('You are not authenticated. Please log in.');
+  
+    try {
+      console.log("Token being sent:", token); // ✅ Debug log
+      const response = await axios.post(
+        `http://localhost:8080/api/comments/plan/${planId}`,
+        { message: newComment, resourceLink },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+  
+      setCommentsByPlan((prev) => ({
+        ...prev,
+        [planId]: [...(prev[planId] || []), response.data],
+      }));
+      setNewCommentText((prev) => ({ ...prev, [planId]: '' }));
+      setNewResourceLink((prev) => ({ ...prev, [planId]: '' }));
+    } catch (error) {
+      console.error('Error adding comment:', error.response?.data || error.message);
+      if (error.response?.status === 403) {
+        alert("You are not authorized. Please log in again.");
+      }
+    }
+  };
+  const handleDeleteComment = async (planId, commentId) => {
+    await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const response = await axios.get(`http://localhost:8080/api/learning-plans/${planId}/comments`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCommentsByPlan((prev) => ({ ...prev, [planId]: response.data }));
   };
 
   const handleUpdateComment = async (planId, commentId) => {
@@ -353,7 +438,6 @@ const LearningPlanPage = () => {
                             💬 Add Comment
                           </button>
                         </div>
-                      </>
                     )}
                   </div>
                 )}
