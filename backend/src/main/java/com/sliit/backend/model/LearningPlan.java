@@ -16,16 +16,14 @@ public class LearningPlan {
     private String description;
     private String duration;
     private String deadline;
-    private String status; // e.g., "Not Started", "In Progress", "Completed"
-    private List<String> modules; // e.g., ["Variables", "Loops", "Functions"]
+    private String status;
+    private List<String> modules;
     private boolean completed;
     private String progress;
     private String username;
 
-    private List<Comment> comments;
-
-    // ====== Getters & Setters ======
-
+    // Remove the comments list from LearningPlan
+    // Getters and setters remain the same
     public String getId() {
         return id;
     }
@@ -112,53 +110,5 @@ public class LearningPlan {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
-    }
-
-    // ====== Nested Comment Class ======
-    public static class Comment {
-        private String userId;
-        private String username;
-        private String message;
-        private String resourceLink;
-
-        public String getUserId() {
-            return userId;
-        }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public String getResourceLink() {
-            return resourceLink;
-        }
-
-        public void setResourceLink(String resourceLink) {
-            this.resourceLink = resourceLink;
-        }
     }
 }
