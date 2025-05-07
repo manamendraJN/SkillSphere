@@ -6,6 +6,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
+import LearningPlanPage from './pages/LearningPlanPage';
+import CreateNewLearningPlan from './components/CreateNewLearningPlan';
 import './index.css';
 
 const LearningPlans = () => (
@@ -14,9 +16,10 @@ const LearningPlans = () => (
     animate={{ opacity: 1 }}
     className="text-gray-950 dark:text-gray-600 mt-5 ml-8"
   >
-    Learning Plans Page (TBD)
+    <LearningPlanPage />  {/* Use your actual LearningPlanPage here */}
   </motion.div>
 );
+
 const SkillPosts = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -26,6 +29,7 @@ const SkillPosts = () => (
     Skill Posts Page (TBD)
   </motion.div>
 );
+
 const Profile = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -40,15 +44,16 @@ function App() {
   return (
     <div className="min-h-screen bg-teal-50 ">
       <Header />
-      <div className="pt-16 md:pl-80  ">
+      <div className="pt-16 md:pl-80">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Home />} />
           <Route path="/q&a-form" element={<QAPage />} />
-          <Route path="/learning-plans" element={<LearningPlans />} />
+          <Route path="/learning-plans" element={<LearningPlans />} />  {/* This renders LearningPlans, which includes LearningPlanPage */}
           <Route path="/skill-posts" element={<SkillPosts />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/add-learning-plan" element={<CreateNewLearningPlan />} />
         </Routes>
       </div>
     </div>
