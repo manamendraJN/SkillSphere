@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import {
   AlertCircle,
   ThumbsUp,
+  ThumbsDown,
   MessageCircle,
   Share2,
   Trash2,
@@ -324,39 +325,41 @@ const Feed = () => {
                 </div>
               )}
 
-              {/* Updated comment section with green border, small text, and animation */}
               {commentBoxOpen[post.id] && (
                 <div className="mt-4 space-y-4">
                   {post.comments?.map((comment) => (
-  <motion.div
-    key={comment.id}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-    className="bg-green-50 border border-green-300 rounded-xl px-4 py-3"
-  >
-    <div className="flex gap-3 items-start">
-      <div className="w-7 h-7 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs mt-1">
-        {comment.username?.charAt(0).toUpperCase() || "U"}
-      </div>
-      <div className="flex-1">
-        <p className="text-gray-800 text-sm mb-1 text-left">{comment.text}</p>
-        <div className="text-xs text-gray-600 flex items-center gap-4">
-          
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1 hover:text-green-600 transition">
-              👍 <span>7</span>
-            </button>
-            <button className="flex items-center gap-1 hover:text-red-600 transition">
-              👎 <span>1</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-))}
-
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-green-50 border border-green-300 rounded-xl px-4 py-3"
+                    >
+                      <div className="flex gap-3 items-start">
+                        <div className="w-7 h-7 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs mt-1">
+                          {comment.username?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-800 text-sm mb-1 text-left">
+                            {comment.text}
+                          </p>
+                          <div className="text-xs text-gray-600 flex items-center gap-4">
+                            <span> {comment.username}</span>
+                            <div className="flex items-center gap-4 mt-1">
+                              <button className="flex items-center gap-1 text-teal-700 hover:text-green-600 transition">
+                                <ThumbsUp size={16} strokeWidth={1.5} />
+                                <span>8</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-teal-700 hover:text-red-600 transition">
+                                <ThumbsDown size={16} strokeWidth={1.5} />
+                                <span>1</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               )}
             </motion.div>
