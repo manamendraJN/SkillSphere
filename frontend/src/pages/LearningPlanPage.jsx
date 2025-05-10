@@ -346,7 +346,7 @@ const LearningPlanPage = () => {
   });
 
   return (
-    <div className="p-8 min-h-screen font-sans bg-gray-50">
+    <div className="p-8 min-h-screen font-sans bg-teal-50">
       <div className="max-w-5xl mx-auto mt-4">
         {successMessage && (
           <div className="mb-4 p-3 text-green-800 bg-green-100 rounded-lg text-center font-semibold shadow">
