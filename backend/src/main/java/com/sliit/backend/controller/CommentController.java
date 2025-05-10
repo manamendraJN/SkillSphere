@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -50,9 +52,23 @@ public class CommentController {
 
     // Get all comments for a specific learning plan
     @GetMapping("/plan/{planId}")
-    public ResponseEntity<List<Comment>> getCommentsByPlanId(@PathVariable String planId) {
+    public ResponseEntity<List<Map<String, Object>>> getCommentsByPlanId(@PathVariable String planId) {
+        String currentUserId = getCurrentUserId();
         List<Comment> comments = commentRepository.findByLearningPlanIdOrderByCreatedAtDesc(planId);
-        return ResponseEntity.ok(comments);
+        List<Map<String, Object>> response = comments.stream().map(comment -> {
+            Map<String, Object> commentData = new HashMap<>();
+            commentData.put("id", comment.getId());
+            commentData.put("message", comment.getMessage());
+            commentData.put("resourceLink", comment.getResourceLink());
+            commentData.put("username", comment.getUsername());
+            commentData.put("userId", comment.getUserId());
+            commentData.put("learningPlanId", comment.getLearningPlanId());
+            commentData.put("createdAt", comment.getCreatedAt());
+            commentData.put("count", comment.getLikeCount());
+            commentData.put("likedByUser", comment.getLikedBy().contains(currentUserId));
+            return commentData;
+        }).toList();
+        return ResponseEntity.ok(response);
     }
 
     // Update a comment
@@ -88,5 +104,45 @@ public class CommentController {
 
         commentRepository.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    // Like or unlike a comment
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Map<String, Object>> likeComment(
+            @PathVariable String id,
+            @RequestBody Map<String, Boolean> request) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        String userId = getCurrentUserId();
+        boolean like = request.getOrDefault("like", true);
+        List<String> likedBy = comment.getLikedBy();
+
+        if (like && !likedBy.contains(userId)) {
+            likedBy.add(userId);
+            comment.setLikeCount(comment.getLikeCount() + 1);
+        } else if (!like && likedBy.contains(userId)) {
+            likedBy.remove(userId);
+            comment.setLikeCount(comment.getLikeCount() - 1);
+        }
+
+        Comment updatedComment = commentRepository.save(comment);
+        Map<String, Object> response = new HashMap<>();
+        response.put("count", updatedComment.getLikeCount());
+        response.put("likedByUser", updatedComment.getLikedBy().contains(userId));
+        return ResponseEntity.ok(response);
+    }
+
+    // Get like information for a comment
+    @GetMapping("/{id}/likes")
+    public ResponseEntity<Map<String, Object>> getCommentLikes(@PathVariable String id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        String currentUserId = getCurrentUserId();
+        Map<String, Object> response = new HashMap<>();
+        response.put("count", comment.getLikeCount());
+        response.put("likedByUser", comment.getLikedBy().contains(currentUserId));
+        return ResponseEntity.ok(response);
     }
 }
