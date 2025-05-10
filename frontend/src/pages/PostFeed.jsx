@@ -111,7 +111,7 @@ const Feed = () => {
 
     try {
       await axios.post(
-        `http://localhost:8080/api/posts/${postId}/comments`,
+        `http://localhost:8080/api/posts/${postId}/comment`,
         { text: comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -153,11 +153,9 @@ const Feed = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={post.user?.profilePicture || "/dummy-profile.png"}
-                    alt="User"
-                    className="w-11 h-11 rounded-full object-cover ring-2 ring-green-500"
-                  />
+                  <div className="w-11 h-11 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold text-lg">
+                    {post.username?.charAt(0).toUpperCase() || "U"}
+                  </div>
                   <div>
                     <p className="font-semibold text-gray-800">
                       {post.username || "Unknown"}
@@ -275,7 +273,9 @@ const Feed = () => {
                 <button
                   onClick={() => handleLike(post.id)}
                   className={`flex items-center gap-1 transition ${
-                    isLiked ? "text-green-600 font-semibold" : "hover:text-green-600"
+                    isLiked
+                      ? "text-green-600 font-semibold"
+                      : "hover:text-green-600"
                   }`}
                 >
                   <ThumbsUp size={16} />
@@ -321,6 +321,42 @@ const Feed = () => {
                       Post
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* Updated comment section with green border, small text, and animation */}
+              {commentBoxOpen[post.id] && (
+                <div className="mt-4 space-y-4">
+                  {post.comments?.map((comment) => (
+  <motion.div
+    key={comment.id}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="bg-green-50 border border-green-300 rounded-xl px-4 py-3"
+  >
+    <div className="flex gap-3 items-start">
+      <div className="w-7 h-7 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs mt-1">
+        {comment.username?.charAt(0).toUpperCase() || "U"}
+      </div>
+      <div className="flex-1">
+        <p className="text-gray-800 text-sm mb-1 text-left">{comment.text}</p>
+        <div className="text-xs text-gray-600 flex items-center gap-4">
+          
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-1 hover:text-green-600 transition">
+              👍 <span>7</span>
+            </button>
+            <button className="flex items-center gap-1 hover:text-red-600 transition">
+              👎 <span>1</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+))}
+
                 </div>
               )}
             </motion.div>
