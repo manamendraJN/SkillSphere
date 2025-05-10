@@ -61,7 +61,7 @@ const CreateNewLearningPlan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-teal-50 font-sans">
       <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <h2 className="text-3xl font-bold text-[#00796b] mb-8 flex items-center">
