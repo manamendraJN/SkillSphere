@@ -11,6 +11,8 @@ import {
   Trash2,
   Pencil,
 } from "lucide-react";
+import Picker from "@emoji-mart/react";
+import emojiData from "@emoji-mart/data";
 
 const Feed = () => {
   const { user } = useContext(AuthContext);
@@ -264,9 +266,6 @@ const Feed = () => {
                   src={post.videoUrl}
                   controls
                   className="w-full rounded-xl mb-3"
-                  onError={() =>
-                    console.error(`Failed to load video: ${post.videoUrl}`)
-                  }
                 />
               )}
 
@@ -282,8 +281,6 @@ const Feed = () => {
                   <ThumbsUp size={16} />
                   {post.likes} Like
                 </button>
-
-                {/* ✅ Updated comment button with comment count */}
                 <button
                   onClick={() =>
                     setCommentBoxOpen((prev) => ({
@@ -296,7 +293,6 @@ const Feed = () => {
                   <MessageCircle size={16} />
                   {post.comments?.length || 0} Comment
                 </button>
-
                 <button className="flex items-center gap-1 hover:text-green-600 transition">
                   <Share2 size={16} />
                   Share
@@ -304,7 +300,7 @@ const Feed = () => {
               </div>
 
               {commentBoxOpen[post.id] && (
-                <div className="mt-3 flex flex-col gap-2">
+                <div className="mt-3 flex flex-col gap-2 relative">
                   <textarea
                     rows={2}
                     className="w-full p-2 border rounded-md"
@@ -317,7 +313,18 @@ const Feed = () => {
                       }))
                     }
                   />
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() =>
+                        setCommentBoxOpen((prev) => ({
+                          ...prev,
+                          [`emoji_${post.id}`]: !prev[`emoji_${post.id}`],
+                        }))
+                      }
+                      className="text-xl px-2 hover:bg-gray-100 rounded-md"
+                    >
+                      😊
+                    </button>
                     <button
                       onClick={() => handlePostComment(post.id)}
                       className="bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600 transition"
@@ -325,6 +332,20 @@ const Feed = () => {
                       Post
                     </button>
                   </div>
+                  {commentBoxOpen[`emoji_${post.id}`] && (
+                    <div className="absolute bottom-14 left-2 z-10">
+                      <Picker
+                        data={emojiData}
+                        onEmojiSelect={(emoji) => {
+                          setCommentTexts((prev) => ({
+                            ...prev,
+                            [post.id]: (prev[post.id] || "") + emoji.native,
+                          }));
+                        }}
+                        theme="light"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
