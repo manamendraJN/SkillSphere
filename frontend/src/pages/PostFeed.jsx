@@ -282,6 +282,8 @@ const Feed = () => {
                   <ThumbsUp size={16} />
                   {post.likes} Like
                 </button>
+
+                {/* ✅ Updated comment button with comment count */}
                 <button
                   onClick={() =>
                     setCommentBoxOpen((prev) => ({
@@ -292,8 +294,9 @@ const Feed = () => {
                   className="flex items-center gap-1 hover:text-green-600 transition"
                 >
                   <MessageCircle size={16} />
-                  Comment
+                  {post.comments?.length || 0} Comment
                 </button>
+
                 <button className="flex items-center gap-1 hover:text-green-600 transition">
                   <Share2 size={16} />
                   Share
@@ -344,7 +347,7 @@ const Feed = () => {
                             {comment.text}
                           </p>
                           <div className="text-xs text-gray-600 flex items-center gap-4">
-                            <span> {comment.username}</span>
+                            <span>{comment.username}</span>
                             <div className="flex items-center gap-4 mt-1">
                               <button className="flex items-center gap-1 text-teal-700 hover:text-green-600 transition">
                                 <ThumbsUp size={16} strokeWidth={1.5} />
