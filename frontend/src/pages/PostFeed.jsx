@@ -156,7 +156,7 @@ const Feed = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold text-lg">
+                  <div className="w-11 h-11 rounded-full bg-teal-700 flex items-center justify-center text-white font-semibold text-lg">
                     {post.username?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <div>
@@ -327,7 +327,7 @@ const Feed = () => {
                     </button>
                     <button
                       onClick={() => handlePostComment(post.id)}
-                      className="bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600 transition"
+                      className="bg-teal-700 text-white px-4 py-1 rounded-md hover:bg-green-600 transition"
                     >
                       Post
                     </button>
