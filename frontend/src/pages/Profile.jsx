@@ -203,7 +203,7 @@ const Profile = () => {
                 id={field.id}
                 value={field.value}
                 onChange={(e) => setUpdateForm({ ...updateForm, [field.id]: e.target.value })}
-                className={`w-full p-3 bg-transparent border ${field.error ? 'border-red-400' : 'border-teal-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder-gray-400 peer transition-all`}
+                className={`w-full p-3 bg-transparent border ${field.error ? 'border-red-400' : 'border-teal-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder-gray-400 peer transition-all shadow-sm`}
                 placeholder={field.label}
                 required
               />
