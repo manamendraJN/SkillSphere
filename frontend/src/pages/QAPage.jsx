@@ -56,8 +56,8 @@ const QAPage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsQuestionFormOpen(true)}
-            className="px-6 py-3 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors flex items-center shadow-md"
-          >
+            className="px-6 py-3 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors flex items-center shadow-lg">
+          
             <PlusCircle className="w-6 h-6 mr-2" />
             Ask a Question
           </motion.button>
