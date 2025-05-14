@@ -2,7 +2,9 @@ import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Trash2, Pencil, BookOpen } from 'lucide-react';
+import { 
+  ChevronDown, ChevronUp, Trash2, Pencil, BookOpen, Heart, Link, Send 
+} from 'lucide-react';
 
 const LearningPlanPage = () => {
   const { token, loading, user } = useContext(AuthContext);
@@ -21,6 +23,7 @@ const LearningPlanPage = () => {
   const [newResourceLink, setNewResourceLink] = useState({});
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedCommentText, setEditedCommentText] = useState('');
+  const [likesByComment, setLikesByComment] = useState({}); // Track likes for comments
 
   const getInitial = (username) => {
     return username && username.length > 0 ? username.charAt(0).toUpperCase() : 'U';
@@ -43,12 +46,13 @@ const LearningPlanPage = () => {
     fetchLearningPlans();
   }, [loading, token]);
 
+  // Fetch comments and likes for each plan
   useEffect(() => {
     if (learningPlans.length > 0 && token) {
       learningPlans.forEach(async (plan) => {
         try {
           const commentsResponse = await axios.get(
-            `http://localhost:8080/api/learning-plans/${plan.id}/comments`,
+            `http://localhost:8080/api/comments/plan/${plan.id}`, // Matches CommentController
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -57,8 +61,27 @@ const LearningPlanPage = () => {
             ...prev,
             [plan.id]: commentsResponse.data || [],
           }));
+
+          // Fetch likes for each comment
+          const likesPromises = commentsResponse.data.map(async (comment) => {
+            const likesResponse = await axios.get(
+              `http://localhost:8080/api/comments/${comment.id}/likes`, // Matches CommentController
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            return { commentId: comment.id, ...likesResponse.data };
+          });
+          const likesData = await Promise.all(likesPromises);
+          setLikesByComment((prev) => ({
+            ...prev,
+            ...likesData.reduce((acc, { commentId, count, likedByUser }) => ({
+              ...acc,
+              [commentId]: { count, likedByUser },
+            }), {}),
+          }));
         } catch (error) {
-          console.error('Error fetching comments:', error);
+          console.error('Error fetching comments or likes:', error);
         }
       });
     }
@@ -71,7 +94,7 @@ const LearningPlanPage = () => {
       setExpandedPlanId(planId);
       try {
         const commentsResponse = await axios.get(
-          `http://localhost:8080/api/learning-plans/${planId}/comments`,
+          `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -80,8 +103,27 @@ const LearningPlanPage = () => {
           ...prev,
           [planId]: commentsResponse.data || [],
         }));
+
+        // Fetch likes for the comments
+        const likesPromises = commentsResponse.data.map(async (comment) => {
+          const likesResponse = await axios.get(
+            `http://localhost:8080/api/comments/${comment.id}/likes`, // Matches CommentController
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          return { commentId: comment.id, ...likesResponse.data };
+        });
+        const likesData = await Promise.all(likesPromises);
+        setLikesByComment((prev) => ({
+          ...prev,
+          ...likesData.reduce((acc, { commentId, count, likedByUser }) => ({
+            ...acc,
+            [commentId]: { count, likedByUser },
+          }), {}),
+        }));
       } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error('Error fetching comments or likes:', error);
       }
     }
   };
@@ -160,14 +202,13 @@ const LearningPlanPage = () => {
   const handleAddComment = async (planId) => {
     const message = newCommentText[planId];
     const resourceLink = newResourceLink[planId];
-    const token = localStorage.getItem('token');
 
     if (!message) return alert('Please enter a comment');
     if (!token) return alert('You are not authenticated. Please log in.');
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/comments/plan/${planId}`,
+        `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
         { message, resourceLink },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -175,6 +216,10 @@ const LearningPlanPage = () => {
       setCommentsByPlan((prev) => ({
         ...prev,
         [planId]: [...(prev[planId] || []), response.data],
+      }));
+      setLikesByComment((prev) => ({
+        ...prev,
+        [response.data.id]: { count: 0, likedByUser: false },
       }));
       setNewCommentText((prev) => ({ ...prev, [planId]: '' }));
       setNewResourceLink((prev) => ({ ...prev, [planId]: '' }));
@@ -193,14 +238,14 @@ const LearningPlanPage = () => {
   const handleUpdateComment = async (planId, commentId) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/comments/${commentId}`,
-        { message: editedCommentText, resourceLink: '' },
+        `http://localhost:8080/api/comments/${commentId}`, // Matches CommentController
+        { message: editedCommentText, resourceLink: newResourceLink[planId] || '' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEditingCommentId(null);
       setEditedCommentText('');
       const response = await axios.get(
-        `http://localhost:8080/api/learning-plans/${planId}/comments`,
+        `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -220,16 +265,18 @@ const LearningPlanPage = () => {
 
   const handleDeleteComment = async (planId, commentId) => {
     try {
-      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
+      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, { // Matches CommentController
         headers: { Authorization: `Bearer ${token}` },
       });
-      const response = await axios.get(
-        `http://localhost:8080/api/learning-plans/${planId}/comments`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setCommentsByPlan((prev) => ({ ...prev, [planId]: response.data }));
+      setCommentsByPlan((prev) => ({
+        ...prev,
+        [planId]: prev[planId].filter((comment) => comment.id !== commentId),
+      }));
+      setLikesByComment((prev) => {
+        const newLikes = { ...prev };
+        delete newLikes[commentId];
+        return newLikes;
+      });
       setSuccessMessage('✅ Comment deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
@@ -238,6 +285,31 @@ const LearningPlanPage = () => {
         alert('You are not authorized to delete this comment.');
       } else {
         alert('Failed to delete comment. Please try again.');
+      }
+    }
+  };
+
+  const handleLikeComment = async (planId, commentId) => {
+    try {
+      const isLiked = likesByComment[commentId]?.likedByUser || false;
+      await axios.post(
+        `http://localhost:8080/api/comments/${commentId}/like`, // Matches CommentController
+        { like: !isLiked },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setLikesByComment((prev) => ({
+        ...prev,
+        [commentId]: {
+          count: isLiked ? (prev[commentId]?.count || 0) - 1 : (prev[commentId]?.count || 0) + 1,
+          likedByUser: !isLiked,
+        },
+      }));
+    } catch (error) {
+      console.error('Error liking comment:', error.response?.data || error.message);
+      if (error.response?.status === 403) {
+        alert('You are not authorized to like this comment.');
+      } else {
+        alert('Failed to like comment. Please try again.');
       }
     }
   };
@@ -275,7 +347,7 @@ const LearningPlanPage = () => {
   });
 
   return (
-    <div className="p-8 min-h-screen font-sans bg-gray-50">
+    <div className="p-8 min-h-screen font-sans bg-teal-50">
       <div className="max-w-5xl mx-auto mt-4">
         {successMessage && (
           <div className="mb-4 p-3 text-green-800 bg-green-100 rounded-lg text-center font-semibold shadow">
@@ -436,7 +508,8 @@ const LearningPlanPage = () => {
                           <input
                             type="text"
                             name="status"
-                            value={editedPlanData.status || ''}
+                            value={editedPlanData.status || ''
+                            }
                             onChange={handleInputChange}
                             className="w-full p-2 border rounded-md shadow"
                           />
@@ -467,101 +540,173 @@ const LearningPlanPage = () => {
                           </p>
                         </div>
                         <div className="mt-6 space-y-4">
-                          <h4 className="text-lg font-semibold text-gray-700">💬 Comments</h4>
-                          {(commentsByPlan[plan.id] || []).map((comment) => (
-                            <div
-                              key={comment.id}
-                              className="bg-gray-100 p-4 rounded-lg shadow flex justify-between items-start"
-                            >
-                              <div>
-                                <p className="text-sm font-medium text-gray-800">
-                                  {comment.username}
-                                </p>
+                          <h4 className="text-lg font-semibold text-gray-700 flex items-center">
+                            <span className="mr-2">💬</span> Comments
+                          </h4>
+                          {(commentsByPlan[plan.id] || []).length > 0 ? (
+                            (commentsByPlan[plan.id] || []).map((comment) => (
+                              <div
+                                key={comment.id}
+                                className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="bg-[#00796b] text-white rounded-full w-8 h-8 flex justify-center items-center">
+                                      {getInitial(comment.username)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-800">
+                                        {comment.username}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {new Date(comment.createdAt).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {comment.username === user?.username && (
+                                    <div className="flex space-x-2">
+                                      <button
+                                        onClick={() => {
+                                          setEditingCommentId(comment.id);
+                                          setEditedCommentText(comment.message);
+                                          setNewResourceLink((prev) => ({
+                                            ...prev,
+                                            [plan.id]: comment.resourceLink || '',
+                                          }));
+                                        }}
+                                        className="text-gray-600 hover:text-blue-600 transition"
+                                        title="Edit Comment"
+                                      >
+                                        <Pencil size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteComment(plan.id, comment.id)}
+                                        className="text-gray-600 hover:text-red-600 transition"
+                                        title="Delete Comment"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                                 {editingCommentId === comment.id ? (
-                                  <>
+                                  <div className="mt-3 space-y-3">
                                     <textarea
                                       value={editedCommentText}
                                       onChange={(e) => setEditedCommentText(e.target.value)}
-                                      className="w-full p-2 border rounded shadow my-2"
+                                      className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-teal-300"
+                                      rows={3}
                                     />
-                                    <button
-                                      onClick={() => handleUpdateComment(plan.id, comment.id)}
-                                      className="bg-blue-500 text-white px-4 py-1 rounded mr-2"
-                                    >
-                                      Save
-                                    </button>
-                                    <button
-                                      onClick={() => setEditingCommentId(null)}
-                                      className="bg-gray-500 text-white px-4 py-1 rounded"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </>
+                                    <input
+                                      type="text"
+                                      placeholder="Optional: Resource link"
+                                      value={newResourceLink[plan.id] || ''}
+                                      onChange={(e) =>
+                                        setNewResourceLink((prev) => ({
+                                          ...prev,
+                                          [plan.id]: e.target.value,
+                                        }))
+                                      }
+                                      className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-teal-300"
+                                    />
+                                    <div className="flex space-x-2">
+                                      <button
+                                        onClick={() => handleUpdateComment(plan.id, comment.id)}
+                                        className="bg-[#00796b] text-white px-4 py-1 rounded-full shadow hover:bg-[#004d40] transition"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setEditingCommentId(null);
+                                          setEditedCommentText('');
+                                        }}
+                                        className="bg-gray-300 text-gray-700 px-4 py-1 rounded-full shadow hover:bg-gray-400 transition"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
                                 ) : (
-                                  <p className="text-sm text-gray-700">{comment.message}</p>
-                                )}
-                                {comment.resourceLink && (
-                                  <a
-                                    href={comment.resourceLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 text-xs"
-                                  >
-                                    📎 {comment.resourceLink}
-                                  </a>
+                                  <div className="mt-3">
+                                    <p className="text-sm text-gray-700">{comment.message}</p>
+                                    {comment.resourceLink && (
+                                      <a
+                                        href={comment.resourceLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center text-blue-600 hover:underline text-sm mt-2"
+                                      >
+                                        <Link size={14} className="mr-1" />
+                                        {comment.resourceLink}
+                                      </a>
+                                    )}
+                                    <div className="flex items-center mt-3 space-x-4">
+                                      <button
+                                        onClick={() => handleLikeComment(plan.id, comment.id)}
+                                        className={`flex items-center space-x-1 text-gray-600 hover:text-red-600 transition ${
+                                          likesByComment[comment.id]?.likedByUser
+                                            ? 'text-red-600'
+                                            : ''
+                                        }`}
+                                      >
+                                        <Heart
+                                          size={16}
+                                          fill={
+                                            likesByComment[comment.id]?.likedByUser
+                                              ? 'currentColor'
+                                              : 'none'
+                                          }
+                                        />
+                                        <span>{likesByComment[comment.id]?.count || 0}</span>
+                                      </button>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
-                              {comment.username === user?.username && (
-                                <div className="space-x-2 ml-4">
-                                  <button
-                                    onClick={() => {
-                                      setEditingCommentId(comment.id);
-                                      setEditedCommentText(comment.message);
-                                    }}
-                                    className="text-blue-600 hover:underline"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteComment(plan.id, comment.id)}
-                                    className="text-red-600 hover:underline"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500">No comments yet.</p>
+                          )}
                           <div className="mt-4">
-                            <textarea
-                              placeholder="Add your comment..."
-                              value={newCommentText[plan.id] || ''}
-                              onChange={(e) =>
-                                setNewCommentText((prev) => ({
-                                  ...prev,
-                                  [plan.id]: e.target.value,
-                                }))
-                              }
-                              className="w-full p-2 border rounded shadow mb-2"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Optional: Resource link"
-                              value={newResourceLink[plan.id] || ''}
-                              onChange={(e) =>
-                                setNewResourceLink((prev) => ({
-                                  ...prev,
-                                  [plan.id]: e.target.value,
-                                }))
-                              }
-                              className="w-full p-2 border rounded shadow mb-2"
-                            />
-                            <button
-                              onClick={() => handleAddComment(plan.id)}
-                              className="bg-[#00796b] text-white px-4 py-2 rounded-full shadow hover:bg-[#004d40]"
-                            >
-                              Post Comment
-                            </button>
+                            <div className="flex items-start space-x-3">
+                              <div className="bg-[#00796b] text-white rounded-full w-8 h-8 flex justify-center items-center">
+                                {getInitial(user?.username)}
+                              </div>
+                              <div className="flex-1 space-y-2">
+                                <textarea
+                                  placeholder="Add your comment..."
+                                  value={newCommentText[plan.id] || ''}
+                                  onChange={(e) =>
+                                    setNewCommentText((prev) => ({
+                                      ...prev,
+                                      [plan.id]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-teal-300"
+                                  rows={3}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Optional: Resource link"
+                                  value={newResourceLink[plan.id] || ''}
+                                  onChange={(e) =>
+                                    setNewResourceLink((prev) => ({
+                                      ...prev,
+                                      [plan.id]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-teal-300"
+                                />
+                                <button
+                                  onClick={() => handleAddComment(plan.id)}
+                                  className="bg-[#00796b] text-white px-4 py-2 rounded-full shadow hover:bg-[#004d40] flex items-center transition"
+                                >
+                                  <Send size={16} className="mr-2" />
+                                  Post Comment
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
