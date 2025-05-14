@@ -22,8 +22,7 @@ public class LearningPlan {
     private String progress;
     private String username;
 
-    // Remove the comments list from LearningPlan
-    // Getters and setters remain the same
+    
     public String getId() {
         return id;
     }
