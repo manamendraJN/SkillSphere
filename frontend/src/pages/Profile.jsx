@@ -2,6 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { AlertCircle, Key, Trash2, CheckCircle } from 'lucide-react';
 
 const Profile = () => {
   const { user, token, logout } = useContext(AuthContext);
@@ -62,9 +64,11 @@ const Profile = () => {
       setSuccess('Password updated successfully');
       setUpdateForm({ previousPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      const errorMessage = err.response?.data || err.message;
+      const errorMessage = err.response?.data === 'Incorrect previous password'
+        ? 'The previous password is incorrect'
+        : err.response?.data || err.message;
       console.error('Password update failed:', errorMessage); // Debug error
-      setError('Failed to update password: ' + errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -90,63 +94,113 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-md">
-      <h2 className="text-2xl font-bold mb-4">Profile</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {success && <p className="text-green-500 mb-4">{success}</p>}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold">Profile Details</h3>
-        <p><strong>Username:</strong> {profile.username}</p>
-        <p><strong>Email:</strong> {profile.email}</p>
-      </div>
-      <form onSubmit={handleUpdate} className="space-y-4">
-        <div>
-          <label htmlFor="previousPassword" className="block text-sm font-medium">Previous Password</label>
-          <input
-            type="password"
-            id="previousPassword"
-            value={updateForm.previousPassword}
-            onChange={(e) => setUpdateForm({ ...updateForm, previousPassword: e.target.value })}
-            className="mt-1 block w-full p-2 border rounded"
-            required
-          />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className="container mx-auto p-6 max-w-lg"
+    >
+      <div className="bg-white rounded-2xl shadow-2xl border border-teal-200 p-6">
+        <h2 className="text-2xl font-bold text-teal-800 mb-6 flex items-center">
+          <Key className="w-6 h-6 mr-2 text-teal-600" /> Profile Settings
+        </h2>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-orange-100 p-3 rounded-lg flex items-center space-x-2 text-orange-600 font-semibold mb-4"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <p>{error}</p>
+          </motion.div>
+        )}
+
+        {/* Success Message */}
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-teal-100 p-3 rounded-lg flex items-center space-x-2 text-teal-600 font-semibold mb-4"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <p>{success}</p>
+          </motion.div>
+        )}
+
+        {/* Profile Details */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-teal-800">Profile Details</h3>
+          <p className="text-gray-600 mt-2"><strong>Username:</strong> {profile.username}</p>
+          <p className="text-gray-600"><strong>Email:</strong> {profile.email}</p>
         </div>
-        <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium">New Password</label>
-          <input
-            type="password"
-            id="newPassword"
-            value={updateForm.newPassword}
-            onChange={(e) => setUpdateForm({ ...updateForm, newPassword: e.target.value })}
-            className="mt-1 block w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium">Confirm New Password</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            value={updateForm.confirmPassword}
-            onChange={(e) => setUpdateForm({ ...updateForm, confirmPassword: e.target.value })}
-            className="mt-1 block w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+
+        {/* Password Update Form */}
+        <form onSubmit={handleUpdate} className="space-y-6">
+          <div className="relative">
+            <input
+              type="password"
+              id="previousPassword"
+              value={updateForm.previousPassword}
+              onChange={(e) => setUpdateForm({ ...updateForm, previousPassword: e.target.value })}
+              className="w-full p-3 bg-transparent border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder-gray-400 peer"
+              placeholder="Previous Password"
+              required
+            />
+            <label className="absolute -top-2 left-3 px-1 text-sm text-gray-600 bg-white peer-focus:text-teal-600 transition-all">
+              Previous Password
+            </label>
+          </div>
+          <div className="relative">
+            <input
+              type="password"
+              id="newPassword"
+              value={updateForm.newPassword}
+              onChange={(e) => setUpdateForm({ ...updateForm, newPassword: e.target.value })}
+              className="w-full p-3 bg-transparent border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder-gray-400 peer"
+              placeholder="New Password"
+              required
+            />
+            <label className="absolute -top-2 left-3 px-1 text-sm text-gray-600 bg-white peer-focus:text-teal-600 transition-all">
+              New Password
+            </label>
+          </div>
+          <div className="relative">
+            <input
+              type="password"
+              id="confirmPassword"
+              value={updateForm.confirmPassword}
+              onChange={(e) => setUpdateForm({ ...updateForm, confirmPassword: e.target.value })}
+              className="w-full p-3 bg-transparent border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder-gray-400 peer"
+              placeholder="Confirm New Password"
+              required
+            />
+            <label className="absolute -top-2 left-3 px-1 text-sm text-gray-600 bg-white peer-focus:text-teal-600 transition-all">
+              Confirm New Password
+            </label>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            className="w-full flex items-center justify-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
+          >
+            <Key className="w-5 h-5 mr-2" /> Update Password
+          </motion.button>
+        </form>
+
+        {/* Delete Account Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleDelete}
+          className="w-full flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors mt-4"
         >
-          Update Password
-        </button>
-      </form>
-      <button
-        onClick={handleDelete}
-        className="w-full bg-red-500 text-white p-2 rounded mt-4 hover:bg-red-600"
-      >
-        Delete Account
-      </button>
-    </div>
+          <Trash2 className="w-5 h-5 mr-2" /> Delete Account
+        </motion.button>
+      </div>
+    </motion.div>
   );
 };
 
