@@ -24,9 +24,7 @@ public class SecurityConfig {
 
     private static final Logger LOGGER = Logger.getLogger(SecurityConfig.class.getName());
 
-    @SuppressWarnings("unused")
     private final UserDetailsService userDetailsService;
-    @SuppressWarnings("unused")
     private final JwtUtil jwtUtil;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -48,8 +46,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
                 LOGGER.info("Permitting /api/auth/**");
-                auth.requestMatchers("/api/auth/**").permitAll() // Allow /login and /register
-                    .requestMatchers("/api/auth/validate").authenticated() // Require authentication for /validate
+                auth.requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                    .requestMatchers("/api/auth/validate", "/api/auth/profile").authenticated()
                     .anyRequest().authenticated();
             })
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
