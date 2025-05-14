@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
 import LearningPlanPage from './pages/LearningPlanPage';
 import CreateNewLearningPlan from './components/CreateNewLearningPlan';
+import Profile from './pages/Profile.jsx';
 import './index.css';
 
 const LearningPlans = () => (
@@ -30,15 +31,6 @@ const SkillPosts = () => (
   </motion.div>
 );
 
-const Profile = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="text-gray-800 dark:text-gray-600 mt-5 ml-8"
-  >
-    Profile Page (TBD)
-  </motion.div>
-);
 
 function App() {
   return (
