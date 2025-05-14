@@ -10,6 +10,7 @@ public class User {
     private String username;
     private String password; // Will be hashed
     private String email;
+    private String profileIcon; // Base64-encoded image string
 
     // Constructors
     public User() {}
@@ -28,4 +29,6 @@ public class User {
     public void setPassword(String password) { this.password = password; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public String getProfileIcon() { return profileIcon; }
+    public void setProfileIcon(String profileIcon) { this.profileIcon = profileIcon; }
 }
