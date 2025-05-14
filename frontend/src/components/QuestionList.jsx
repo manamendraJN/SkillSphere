@@ -272,6 +272,7 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
+              whileHover={{ scale: 1.01 }}
               className="p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow border border-teal-200"
             >
               {editingQuestionId === question.id ? (
