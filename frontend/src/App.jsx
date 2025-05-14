@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
 import LearningPlanPage from './pages/LearningPlanPage';
 import CreateNewLearningPlan from './components/CreateNewLearningPlan';
+import Profile from './pages/Profile.jsx';
 import './index.css';
 
 const LearningPlans = () => (
