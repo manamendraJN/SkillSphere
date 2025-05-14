@@ -2,7 +2,9 @@ import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Trash2, Pencil, BookOpen, Heart, Link, Send } from 'lucide-react';
+import { 
+  ChevronDown, ChevronUp, Trash2, Pencil, BookOpen, Heart, Link, Send 
+} from 'lucide-react';
 
 const LearningPlanPage = () => {
   const { token, loading, user } = useContext(AuthContext);
@@ -21,8 +23,7 @@ const LearningPlanPage = () => {
   const [newResourceLink, setNewResourceLink] = useState({});
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedCommentText, setEditedCommentText] = useState('');
-  // New state for likes
-  const [likesByComment, setLikesByComment] = useState({}); // { commentId: { count: number, likedByUser: boolean } }
+  const [likesByComment, setLikesByComment] = useState({}); // Track likes for comments
 
   const getInitial = (username) => {
     return username && username.length > 0 ? username.charAt(0).toUpperCase() : 'U';
@@ -51,7 +52,7 @@ const LearningPlanPage = () => {
       learningPlans.forEach(async (plan) => {
         try {
           const commentsResponse = await axios.get(
-            `http://localhost:8080/api/comments/plan/${plan.id}`,
+            `http://localhost:8080/api/comments/plan/${plan.id}`, // Matches CommentController
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -64,7 +65,7 @@ const LearningPlanPage = () => {
           // Fetch likes for each comment
           const likesPromises = commentsResponse.data.map(async (comment) => {
             const likesResponse = await axios.get(
-              `http://localhost:8080/api/comments/${comment.id}/likes`,
+              `http://localhost:8080/api/comments/${comment.id}/likes`, // Matches CommentController
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
@@ -93,7 +94,7 @@ const LearningPlanPage = () => {
       setExpandedPlanId(planId);
       try {
         const commentsResponse = await axios.get(
-          `http://localhost:8080/api/comments/plan/${planId}`,
+          `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -106,7 +107,7 @@ const LearningPlanPage = () => {
         // Fetch likes for the comments
         const likesPromises = commentsResponse.data.map(async (comment) => {
           const likesResponse = await axios.get(
-            `http://localhost:8080/api/comments/${comment.id}/likes`,
+            `http://localhost:8080/api/comments/${comment.id}/likes`, // Matches CommentController
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -207,7 +208,7 @@ const LearningPlanPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/comments/plan/${planId}`,
+        `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
         { message, resourceLink },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -237,14 +238,14 @@ const LearningPlanPage = () => {
   const handleUpdateComment = async (planId, commentId) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/comments/${commentId}`,
+        `http://localhost:8080/api/comments/${commentId}`, // Matches CommentController
         { message: editedCommentText, resourceLink: newResourceLink[planId] || '' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEditingCommentId(null);
       setEditedCommentText('');
       const response = await axios.get(
-        `http://localhost:8080/api/comments/plan/${planId}`,
+        `http://localhost:8080/api/comments/plan/${planId}`, // Matches CommentController
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -264,7 +265,7 @@ const LearningPlanPage = () => {
 
   const handleDeleteComment = async (planId, commentId) => {
     try {
-      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
+      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, { // Matches CommentController
         headers: { Authorization: `Bearer ${token}` },
       });
       setCommentsByPlan((prev) => ({
@@ -290,16 +291,16 @@ const LearningPlanPage = () => {
 
   const handleLikeComment = async (planId, commentId) => {
     try {
-      const isLiked = likesByComment[commentId]?.likedByUser;
+      const isLiked = likesByComment[commentId]?.likedByUser || false;
       await axios.post(
-        `http://localhost:8080/api/comments/${commentId}/like`,
+        `http://localhost:8080/api/comments/${commentId}/like`, // Matches CommentController
         { like: !isLiked },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLikesByComment((prev) => ({
         ...prev,
         [commentId]: {
-          count: isLiked ? prev[commentId].count - 1 : prev[commentId].count + 1,
+          count: isLiked ? (prev[commentId]?.count || 0) - 1 : (prev[commentId]?.count || 0) + 1,
           likedByUser: !isLiked,
         },
       }));
@@ -419,7 +420,7 @@ const LearningPlanPage = () => {
                       {expandedPlanId === plan.id ? (
                         <ChevronUp size={18} />
                       ) : (
-                        <ChevronDown size= {18} />
+                        <ChevronDown size={18} />
                       )}
                     </button>
                   </div>
@@ -507,7 +508,8 @@ const LearningPlanPage = () => {
                           <input
                             type="text"
                             name="status"
-                            value={editedPlanData.status || ''}
+                            value={editedPlanData.status || ''
+                            }
                             onChange={handleInputChange}
                             className="w-full p-2 border rounded-md shadow"
                           />
