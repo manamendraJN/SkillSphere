@@ -26,6 +26,11 @@ const Header = memo(() => {
     { name: 'Profile', icon: <User className="w-5 h-5 mr-2 text-indigo-600" />, activeIcon: <User className="w-5 h-5 mr-2 text-indigo-800" />, path: 'profile' },
   ];
 
+  // Monitor user changes to ensure profile icon updates
+  useEffect(() => {
+    console.log('User state updated in Header:', user);
+  }, [user]);
+
   const handleLogout = useCallback(() => {
     logout();
     navigate('/login');
@@ -110,9 +115,18 @@ const Header = memo(() => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex items-center space-x-2"
+              key={user?.profileIcon || user?.username} // Force re-render on user data change
             >
-              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold overflow-hidden">
+                {user?.profileIcon ? (
+                  <img
+                    src={user.profileIcon}
+                    alt="Profile Icon"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.username?.charAt(0).toUpperCase() || 'U'
+                )}
               </div>
               <span className="hidden md:block font-medium">{user?.username || 'User'}</span>
             </motion.div>
