@@ -20,10 +20,11 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerContent, setEditAnswerContent] = useState('');
 
-  // Debug user.profileIcon
+  // Debug user and answers
   useEffect(() => {
     console.log('QuestionList user:', user);
-  }, [user]);
+    console.log('QuestionList answers:', answers);
+  }, [user, answers]);
 
   // Update filtered questions based on search term
   useEffect(() => {
@@ -73,7 +74,7 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
 
   const toggleAnswers = (questionId) => {
     if (expandedQuestionId === questionId) {
-      setExpandedQuestionId(null);
+      setEnhancedQuestionId(null);
     } else {
       setExpandedQuestionId(questionId);
       fetchAnswers(questionId);
@@ -394,9 +395,24 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
                               key={answer.id}
                               className="p-3 bg-teal-50 rounded-lg flex items-start space-x-3"
                             >
-                              <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-medium text-xs">
-                                {answer.username?.charAt(0).toUpperCase() || 'U'}
-                              </div>
+                              {user && answer.userId === user.id && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-teal-400 shadow-md"
+                                >
+                                  {user.profileIcon ? (
+                                    <img
+                                      src={user.profileIcon}
+                                      alt="Your Profile Icon"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    user.username?.charAt(0).toUpperCase() || <UserIcon className="w-6 h-6 text-teal-600" />
+                                  )}
+                                </motion.div>
+                              )}
                               <div className="flex-1">
                                 {editingAnswerId === answer.id ? (
                                   <div className="space-y-2">
