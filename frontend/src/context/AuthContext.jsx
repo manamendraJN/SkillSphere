@@ -21,8 +21,9 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     const storedUserId = localStorage.getItem('userId');
     const storedUsername = localStorage.getItem('username');
+    const storedProfileIcon = localStorage.getItem('profileIcon');
 
-    console.log('Stored values:', { storedToken, storedUserId, storedUsername });
+    console.log('Stored values:', { storedToken, storedUserId, storedUsername, storedProfileIcon });
 
     if (storedToken && storedUserId && storedUsername) {
       console.log('Validating token...');
@@ -33,9 +34,9 @@ export const AuthProvider = ({ children }) => {
         .then((response) => {
           console.log('Token validation successful:', response.data);
           setToken(storedToken);
-          setUser({ id: storedUserId, username: storedUsername });
+          setUser({ id: storedUserId, username: storedUsername, profileIcon: storedProfileIcon || '' });
           setLoading(false);
-          console.log('User state after validation:', { id: storedUserId, username: storedUsername }); // Debug
+          console.log('User state after validation:', { id: storedUserId, username: storedUsername, profileIcon: storedProfileIcon });
         })
         .catch((error) => {
           console.error('Token validation failed:', error.response?.data || error.message);
@@ -51,19 +52,29 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
+      // Step 1: Authenticate user
       const response = await axios.post(
         'http://localhost:8080/api/auth/login',
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
       const { token, userId } = response.data;
+      
+      // Step 2: Fetch full profile to get profileIcon
+      const profileResponse = await axios.get('http://localhost:8080/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const { profileIcon } = profileResponse.data;
+
+      // Step 3: Update state and localStorage
       setToken(token);
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
       localStorage.setItem('username', username);
-      setUser({ username, id: userId });
+      localStorage.setItem('profileIcon', profileIcon || '');
+      setUser({ username, id: userId, profileIcon: profileIcon || '' });
       setError(null);
-      console.log('User after login:', { username, id: userId });
+      console.log('User after login:', { username, id: userId, profileIcon });
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       throw error;
@@ -78,13 +89,21 @@ export const AuthProvider = ({ children }) => {
         { headers: { 'Content-Type': 'application/json' } }
       );
       const { token, userId } = response.data;
+      
+      // Fetch profile after registration to get initial profileIcon (if any)
+      const profileResponse = await axios.get('http://localhost:8080/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const { profileIcon } = profileResponse.data;
+
       setToken(token);
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
       localStorage.setItem('username', username);
-      setUser({ username, id: userId });
+      localStorage.setItem('profileIcon', profileIcon || '');
+      setUser({ username, id: userId, profileIcon: profileIcon || '' });
       setError(null);
-      console.log('User after register:', { username, id: userId });
+      console.log('User after register:', { username, id: userId, profileIcon });
     } catch (error) {
       console.error('Register error:', error.response?.data || error.message);
       throw error;
@@ -97,7 +116,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
-    console.log('Logged out, user state:', user);
+    localStorage.removeItem('profileIcon');
+    console.log('Logged out, user state:', null);
   };
 
   return (
