@@ -7,6 +7,9 @@ import Register from './components/Register';
 import { motion } from 'framer-motion';
 import QAPage from './pages/QAPage.jsx';
 import ResourceLibrary from './pages/ResourceLibrary.jsx';
+import LearningPlanPage from './pages/LearningPlanPage';
+import CreateNewLearningPlan from './components/CreateNewLearningPlan';
+import Profile from './pages/Profile.jsx';
 import './index.css';
 
 const LearningPlans = () => (
@@ -27,15 +30,6 @@ const SkillPosts = () => (
     Skill Posts Page (TBD)
   </motion.div>
 );
-const Profile = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="text-gray-800 dark:text-gray-600 mt-5 ml-8"
-  >
-    Profile Page (TBD)
-  </motion.div>
-);
 
 function App() {
   return (
@@ -51,6 +45,8 @@ function App() {
           <Route path="/skill-posts" element={<SkillPosts />} />
           <Route path="/profile" element={<Profile />} />  
           <Route path="/resourceLibrary" element={<ResourceLibrary />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/add-learning-plan" element={<CreateNewLearningPlan />} />
         </Routes>
       </div>
     </div>
