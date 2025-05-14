@@ -88,6 +88,9 @@ public class AuthController {
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
+        if (updatedUser.getProfileIcon() != null) {
+            existingUser.setProfileIcon(updatedUser.getProfileIcon());
+        }
 
         User savedUser = userRepo.save(existingUser);
         String newToken = jwtUtil.generateToken(savedUser.getUsername());
