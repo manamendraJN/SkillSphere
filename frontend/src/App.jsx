@@ -31,15 +31,6 @@ const SkillPosts = () => (
   </motion.div>
 );
 
-const Profile = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="text-gray-800 dark:text-gray-600 mt-5 ml-8"
-  >
-    Profile Page (TBD)
-  </motion.div>
-);
 
 function App() {
   return (
