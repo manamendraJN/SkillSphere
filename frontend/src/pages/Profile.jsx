@@ -120,7 +120,7 @@ const Profile = () => {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="container mx-auto p-6 max-w-lg min-h-screen flex items-center justify-center bg-gradient-to-b from-teal-50 to-gray-100"
+      className="container mx-auto p-8 max-w-lg min-h-screen flex items-center justify-center bg-gradient-to-b from-teal-50 to-gray-100"
     >
       <div className="bg-white rounded-3xl shadow-2xl border border-teal-200 p-8 w-full relative overflow-hidden">
         {/* Subtle Background Pattern */}
