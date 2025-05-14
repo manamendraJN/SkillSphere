@@ -216,7 +216,7 @@ const Profile = () => {
             whileHover={{ scale: 1.05, boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)' }}
             whileTap={{ scale: 0.95 }}
             type="submit"
-            className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-700 text-white rounded-full hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
+            className="w-full flex items-center font-bold justify-center px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-700 text-white rounded-full hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
           >
             <Key className="w-5 h-5 mr-2" /> Update Password
           </motion.button>
@@ -227,7 +227,7 @@ const Profile = () => {
           whileHover={{ scale: 1.05, boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}
           whileTap={{ scale: 0.95 }}
           onClick={handleDelete}
-          className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-full hover:from-red-600 hover:to-red-800 transition-all duration-300 mt-4"
+          className="w-full flex items-center font-bold justify-center px-4 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-full hover:from-red-600 hover:to-red-800 transition-all duration-300 mt-4"
         >
           <Trash2 className="w-5 h-5 mr-2" /> Delete Account
         </motion.button>
