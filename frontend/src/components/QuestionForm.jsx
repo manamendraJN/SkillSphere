@@ -47,7 +47,7 @@ const QuestionForm = ({ isOpen, onClose, onQuestionAdded }) => {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="bg-white rounded-2xl shadow-3xl border border-teal-200 w-full max-w-lg p-6 relative"
+          className="bg-white rounded-2xl shadow-2xl border border-teal-200 w-full max-w-lg p-6 relative"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
