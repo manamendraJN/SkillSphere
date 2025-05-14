@@ -407,10 +407,14 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
                                   </div>
                                 ) : (
                                   <>
+                                                        <motion.div
+                                whileHover={{ scale: 1.01 }}
+                      >
                                     <p className="text-gray-900 text-sm">{answer.content}</p>
                                     <p className="text-teal-700 text-xs font-medium mt-1 flex items-center">
                                       <UserIcon className="w-3 h-3 mr-1" /> {answer.username || 'Unknown'}
                                     </p>
+                                    </motion.div>
                                     <div className="mt-1 flex items-center space-x-3">
                                       <motion.button
                                         whileHover={{ scale: 1.05 }}
