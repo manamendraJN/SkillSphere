@@ -7,25 +7,30 @@ const Profile = () => {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [profile, setProfile] = useState({ username: '', email: '' });
-  const [updateForm, setUpdateForm] = useState({ username: '', email: '', password: '' });
+  const [updateForm, setUpdateForm] = useState({ previousPassword: '', newPassword: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (!user || !token) {
+      console.log('No user or token, redirecting to login');
       navigate('/login');
       return;
     }
+
+    console.log('Fetching profile with token:', token); // Debug token
 
     const fetchProfile = async () => {
       try {
         const response = await axios.get('http://localhost:8080/api/auth/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log('Profile fetch successful:', response.data); // Debug response
         setProfile({ username: response.data.username, email: response.data.email });
-        setUpdateForm({ username: response.data.username, email: response.data.email, password: '' });
       } catch (err) {
-        setError('Failed to fetch profile: ' + (err.response?.data || err.message));
+        const errorMessage = err.response?.data || err.message;
+        console.error('Profile fetch failed:', errorMessage); // Debug error
+        setError('Failed to fetch profile: ' + errorMessage);
       }
     };
 
@@ -36,18 +41,30 @@ const Profile = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Client-side validation for password match
+    if (updateForm.newPassword !== updateForm.confirmPassword) {
+      setError('New password and confirm password do not match');
+      return;
+    }
+
+    console.log('Sending password update with token:', token); // Debug token
+    console.log('Update form data:', updateForm); // Debug form data
+
     try {
       const response = await axios.put(
         'http://localhost:8080/api/auth/profile',
         updateForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setProfile({ username: updateForm.username, email: updateForm.email });
+      console.log('Password update successful:', response.data); // Debug response
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('username', updateForm.username);
-      setSuccess('Profile updated successfully');
+      setSuccess('Password updated successfully');
+      setUpdateForm({ previousPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      setError('Failed to update profile: ' + (err.response?.data || err.message));
+      const errorMessage = err.response?.data || err.message;
+      console.error('Password update failed:', errorMessage); // Debug error
+      setError('Failed to update password: ' + errorMessage);
     }
   };
 
@@ -55,14 +72,20 @@ const Profile = () => {
     if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
     setError('');
     setSuccess('');
+
+    console.log('Sending delete request with token:', token); // Debug token
+
     try {
       await axios.delete('http://localhost:8080/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('Account deleted successfully'); // Debug success
       logout();
       navigate('/login');
     } catch (err) {
-      setError('Failed to delete account: ' + (err.response?.data || err.message));
+      const errorMessage = err.response?.data || err.message;
+      console.error('Account deletion failed:', errorMessage); // Debug error
+      setError('Failed to delete account: ' + errorMessage);
     }
   };
 
@@ -72,46 +95,49 @@ const Profile = () => {
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold">Current Profile</h3>
+        <h3 className="text-lg font-semibold">Profile Details</h3>
         <p><strong>Username:</strong> {profile.username}</p>
         <p><strong>Email:</strong> {profile.email}</p>
       </div>
       <form onSubmit={handleUpdate} className="space-y-4">
         <div>
-          <label htmlFor="username" className="block text-sm font-medium">Username</label>
-          <input
-            type="text"
-            id="username"
-            value={updateForm.username}
-            onChange={(e) => setUpdateForm({ ...updateForm, username: e.target.value })}
-            className="mt-1 block w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={updateForm.email}
-            onChange={(e) => setUpdateForm({ ...updateForm, email: e.target.value })}
-            className="mt-1 block w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium">New Password (optional)</label>
+          <label htmlFor="previousPassword" className="block text-sm font-medium">Previous Password</label>
           <input
             type="password"
-            id="password"
-            value={updateForm.password}
-            onChange={(e) => setUpdateForm({ ...updateForm, password: e.target.value })}
+            id="previousPassword"
+            value={updateForm.previousPassword}
+            onChange={(e) => setUpdateForm({ ...updateForm, previousPassword: e.target.value })}
             className="mt-1 block w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="newPassword" className="block text-sm font-medium">New Password</label>
+          <input
+            type="password"
+            id="newPassword"
+            value={updateForm.newPassword}
+            onChange={(e) => setUpdateForm({ ...updateForm, newPassword: e.target.value })}
+            className="mt-1 block w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium">Confirm New Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            value={updateForm.confirmPassword}
+            onChange={(e) => setUpdateForm({ ...updateForm, confirmPassword: e.target.value })}
+            className="mt-1 block w-full p-2 border rounded"
+            required
           />
         </div>
         <button
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
         >
-          Update Profile
+          Update Password
         </button>
       </form>
       <button
