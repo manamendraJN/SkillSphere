@@ -2,54 +2,56 @@ import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Eye, Trash2, Edit2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, 
-  CheckCircle, MessageSquare, Send, User as UserIcon, AlertCircle, Search 
+import {
+  Eye, Trash2, Edit2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown,
+  CheckCircle, MessageSquare, Send, User as UserIcon, AlertCircle, Search
 } from 'lucide-react';
 
-const QuestionList = () => {
+const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQuestions, error, setError }) => {
   const { user } = useContext(AuthContext);
-  const [questions, setQuestions] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [answerCounts, setAnswerCounts] = useState({});
   const [newAnswer, setNewAnswer] = useState({});
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerContent, setEditAnswerContent] = useState('');
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Please log in to view questions');
-      return;
-    }
-
-    axios
-      .get('http://localhost:8080/api/getall/questions', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setQuestions(response.data);
-        setFilteredQuestions(response.data);
-        setError(null);
-      })
-      .catch((error) => {
-        console.error('Error fetching questions:', error);
-        setError('Failed to load questions');
-      });
-  }, []);
-
+  // Update filtered questions based on search term
   useEffect(() => {
     const filtered = questions.filter((question) =>
       question.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredQuestions(filtered);
-  }, [searchTerm, questions]);
+  }, [searchTerm, questions, setFilteredQuestions]);
+
+  // Fetch answer counts for all questions
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || questions.length === 0) return;
+
+    questions.forEach((question) => {
+      axios
+        .get(`http://localhost:8080/api/get/${question.id}/answers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setAnswerCounts((prev) => ({
+            ...prev,
+            [question.id]: res.data.length,
+          }));
+        })
+        .catch((err) => {
+          console.error(`Error fetching answers for question ${question.id}:`, err);
+        });
+    });
+  }, [questions]);
+
+  const userQuestions = filteredQuestions.filter((question) => user && question.userId === user.id);
+  const otherQuestions = filteredQuestions.filter((question) => user && question.userId !== user.id);
 
   const fetchAnswers = async (questionId) => {
     if (answers[questionId]) return;
@@ -86,6 +88,11 @@ const QuestionList = () => {
           const newAnswers = { ...prev };
           delete newAnswers[id];
           return newAnswers;
+        });
+        setAnswerCounts((prev) => {
+          const newCounts = { ...prev };
+          delete newCounts[id];
+          return newCounts;
         });
         setError(null);
       })
@@ -137,6 +144,10 @@ const QuestionList = () => {
         setAnswers((prev) => ({
           ...prev,
           [questionId]: [...(prev[questionId] || []), response.data],
+        }));
+        setAnswerCounts((prev) => ({
+          ...prev,
+          [questionId]: (prev[questionId] || 0) + 1,
         }));
         setNewAnswer((prev) => ({ ...prev, [questionId]: '' }));
       })
@@ -231,6 +242,10 @@ const QuestionList = () => {
           ...prev,
           [questionId]: prev[questionId].filter((a) => a.id !== answerId),
         }));
+        setAnswerCounts((prev) => ({
+          ...prev,
+          [questionId]: prev[questionId] - 1,
+        }));
         setError(null);
       })
       .catch((error) => {
@@ -239,43 +254,19 @@ const QuestionList = () => {
       });
   };
 
-  return (
+  const renderQuestions = (questions, sectionTitle) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-teal-800 flex items-center">
-          <MessageSquare className="w-6 h-6 mr-1 text-teal-600" /> Questions
-        </h2>
-        <div className="relative w-1/4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search questions..."
-            className="w-full p-2 pl-8 border border-teal-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm text-gray-900"
-          />
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-teal-600" />
-        </div>
-      </div>
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-orange-100 p-2 rounded-lg flex items-center space-x-1 text-orange-600 text-sm font-medium"
-        >
-          <AlertCircle className="w-4 h-4" />
-          <p>{error}</p>
-        </motion.div>
-      )}
-
-      {filteredQuestions.length === 0 ? (
+      <h3 className="text-lg font-semibold text-teal-800 flex items-center">
+        <MessageSquare className="w-5 h-5 mr-1 text-teal-600" /> {sectionTitle}
+      </h3>
+      {questions.length === 0 ? (
         <p className="text-gray-700 text-sm flex items-center">
-          <MessageSquare className="w-4 h-4 mr-1 text-teal-600" /> 
-          {searchTerm ? 'No questions match your search.' : 'No questions yet. Be the first to ask!'}
+          <MessageSquare className="w-4 h-4 mr-1 text-teal-600" />
+          {searchTerm ? 'No questions match your search.' : `No ${sectionTitle.toLowerCase()}.`}
         </p>
       ) : (
         <AnimatePresence>
-          {filteredQuestions.map((question) => (
+          {questions.map((question) => (
             <motion.div
               key={question.id}
               initial={{ opacity: 0, y: 10 }}
@@ -342,7 +333,9 @@ const QuestionList = () => {
                       ) : (
                         <ChevronDown className="w-4 h-4 mr-1" />
                       )}
-                      {expandedQuestionId === question.id ? 'Hide Answers' : `Show Answers (${answers[question.id]?.length || 0})`}
+                      {expandedQuestionId === question.id
+                        ? 'Hide Answers'
+                        : `Show Answers (${answerCounts[question.id] || 0})`}
                     </motion.button>
                     {user && question.userId === user.id && (
                       <div className="flex space-x-1">
@@ -524,7 +517,7 @@ const QuestionList = () => {
                               type="submit"
                               className="mt-2 w-full px-3 py-1 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors flex items-center justify-center text-sm"
                             >
-                              <Send className-="w-3 h-3 mr-1" /> Submit Answer
+                              <Send className="w-3 h-3 mr-1" /> Submit Answer
                             </motion.button>
                           </motion.form>
                         )}
@@ -541,6 +534,45 @@ const QuestionList = () => {
             </motion.div>
           ))}
         </AnimatePresence>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="relative w-1/4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search questions..."
+            className="w-full p-2 pl-8 border border-teal-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm text-gray-900"
+          />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-teal-600" />
+        </div>
+      </div>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-orange-100 p-2 rounded-lg flex items-center space-x-1 text-orange-600 text-sm font-medium"
+        >
+          <AlertCircle className="w-4 h-4" />
+          <p>{error}</p>
+        </motion.div>
+      )}
+
+      {!user ? (
+        <p className="text-gray-700 text-sm flex items-center">
+          <AlertCircle className="w-4 h-4 mr-1 text-orange-600" /> Please log in to view your questions.
+        </p>
+      ) : (
+        <>
+          {renderQuestions(userQuestions, 'Your Questions')}
+          {renderQuestions(otherQuestions, 'Other Users\' Questions')}
+        </>
       )}
     </div>
   );

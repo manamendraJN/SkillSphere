@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import QuestionForm from '../components/QuestionForm';
 import QuestionList from '../components/QuestionList';
@@ -6,9 +7,37 @@ import { HelpCircle, PlusCircle } from 'lucide-react';
 
 const QAPage = () => {
   const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [error, setError] = useState(null);
 
+  // Fetch questions on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please log in to view questions');
+      return;
+    }
+
+    axios
+      .get('http://localhost:8080/api/getall/questions', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setQuestions(response.data);
+        setFilteredQuestions(response.data);
+        setError(null);
+      })
+      .catch((error) => {
+        console.error('Error fetching questions:', error);
+        setError('Failed to load questions');
+      });
+  }, []);
+
+  // Handle new question addition
   const handleQuestionAdded = (newQuestion) => {
-    console.log('New question added:', newQuestion);
+    setQuestions((prevQuestions) => [newQuestion, ...prevQuestions]); // Add new question to the top
+    setFilteredQuestions((prevFiltered) => [newQuestion, ...prevFiltered]); // Update filtered questions
     setIsQuestionFormOpen(false);
   };
 
@@ -40,7 +69,14 @@ const QAPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <QuestionList />
+          <QuestionList
+            questions={questions}
+            setQuestions={setQuestions}
+            filteredQuestions={filteredQuestions}
+            setFilteredQuestions={setFilteredQuestions}
+            error={error}
+            setError={setError}
+          />
         </motion.div>
 
         {/* Question Form Modal */}
