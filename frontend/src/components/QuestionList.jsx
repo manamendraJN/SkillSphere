@@ -20,6 +20,11 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerContent, setEditAnswerContent] = useState('');
 
+  // Debug user.profileIcon
+  useEffect(() => {
+    console.log('QuestionList user:', user);
+  }, [user]);
+
   // Update filtered questions based on search term
   useEffect(() => {
     const filtered = questions.filter((question) =>
@@ -311,9 +316,24 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
               ) : (
                 <>
                   <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-medium text-sm">
-                      {question.username?.charAt(0).toUpperCase() || 'U'}
-                    </div>
+                    {user && question.userId === user.id && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-teal-400 shadow-md"
+                      >
+                        {user.profileIcon ? (
+                          <img
+                            src={user.profileIcon}
+                            alt="Your Profile Icon"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          user.username?.charAt(0).toUpperCase() || <UserIcon className="w-8 h-8 text-teal-600" />
+                        )}
+                      </motion.div>
+                    )}
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900">{question.title}</h3>
                       <p className="text-gray-800 text-sm mt-1">{question.description}</p>
@@ -407,13 +427,13 @@ const QuestionList = ({ questions, setQuestions, filteredQuestions, setFilteredQ
                                   </div>
                                 ) : (
                                   <>
-                                                        <motion.div
-                                whileHover={{ scale: 1.01 }}
-                      >
-                                    <p className="text-gray-900 text-sm">{answer.content}</p>
-                                    <p className="text-teal-700 text-xs font-medium mt-1 flex items-center">
-                                      <UserIcon className="w-3 h-3 mr-1" /> {answer.username || 'Unknown'}
-                                    </p>
+                                    <motion.div
+                                      whileHover={{ scale: 1.01 }}
+                                    >
+                                      <p className="text-gray-900 text-sm">{answer.content}</p>
+                                      <p className="text-teal-700 text-xs font-medium mt-1 flex items-center">
+                                        <UserIcon className="w-3 h-3 mr-1" /> {answer.username || 'Unknown'}
+                                      </p>
                                     </motion.div>
                                     <div className="mt-1 flex items-center space-x-3">
                                       <motion.button
