@@ -18,55 +18,60 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUserId = localStorage.getItem('userId');
-    const storedUsername = localStorage.getItem('username');
-    const storedProfileIcon = localStorage.getItem('profileIcon');
+    const validateStoredToken = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUserId = localStorage.getItem('userId');
+      const storedUsername = localStorage.getItem('username');
+      const storedProfileIcon = localStorage.getItem('profileIcon');
 
-    console.log('Stored values:', { storedToken, storedUserId, storedUsername, storedProfileIcon });
+      console.log('Stored values:', { storedUserId, storedUsername, storedProfileIcon });
 
-    if (storedToken && storedUserId && storedUsername) {
-      console.log('Validating token...');
-      axios
-        .get('http://localhost:8080/api/auth/validate', {
-          headers: { Authorization: `Bearer ${storedToken}` },
-        })
-        .then((response) => {
+      if (storedToken && storedUserId && storedUsername && storedToken.startsWith('eyJ')) {
+        try {
+          console.log('Validating token...');
+          const response = await axios.get('http://localhost:8080/api/auth/validate', {
+            headers: { Authorization: `Bearer ${storedToken}` },
+          });
           console.log('Token validation successful:', response.data);
           setToken(storedToken);
           setUser({ id: storedUserId, username: storedUsername, profileIcon: storedProfileIcon || '' });
           setLoading(false);
           console.log('User state after validation:', { id: storedUserId, username: storedUsername, profileIcon: storedProfileIcon });
-        })
-        .catch((error) => {
-          console.error('Token validation failed:', error.response?.data || error.message);
-          setError('Failed to validate token. Please log in again.');
+          if (!storedProfileIcon) {
+            setError('No profile icon set. Upload an image in your profile settings.');
+          }
+        } catch (error) {
+          const message = error.response?.status === 401 ? 'Token expired. Please log in again.' :
+                          error.response?.status === 403 ? 'Invalid token. Please log in again.' :
+                          'Failed to validate token. Please log in again.';
+          console.error('Token validation failed:', message);
+          setError(message);
           logout();
           setLoading(false);
-        });
-    } else {
-      console.log('No stored token/userId/username, skipping validation');
-      setLoading(false);
-    }
+        }
+      } else {
+        console.log('No valid stored token/userId/username, skipping validation');
+        setLoading(false);
+      }
+    };
+
+    validateStoredToken();
   }, []);
 
   const login = async (username, password) => {
     try {
-      // Step 1: Authenticate user
       const response = await axios.post(
         'http://localhost:8080/api/auth/login',
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
       const { token, userId } = response.data;
-      
-      // Step 2: Fetch full profile to get profileIcon
+
       const profileResponse = await axios.get('http://localhost:8080/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const { profileIcon } = profileResponse.data;
 
-      // Step 3: Update state and localStorage
       setToken(token);
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
@@ -75,9 +80,16 @@ export const AuthProvider = ({ children }) => {
       setUser({ username, id: userId, profileIcon: profileIcon || '' });
       setError(null);
       console.log('User after login:', { username, id: userId, profileIcon });
+      if (!profileIcon) {
+        setError('No profile icon set. Upload an image in your profile settings.');
+      }
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      throw error;
+      const message = error.response?.status === 401 ? 'Invalid username or password.' :
+                      error.response?.status === 403 ? 'Access forbidden.' :
+                      'Login failed. Please try again.';
+      console.error('Login error:', message);
+      setError(message);
+      throw new Error(message);
     }
   };
 
@@ -89,8 +101,7 @@ export const AuthProvider = ({ children }) => {
         { headers: { 'Content-Type': 'application/json' } }
       );
       const { token, userId } = response.data;
-      
-      // Fetch profile after registration to get initial profileIcon (if any)
+
       const profileResponse = await axios.get('http://localhost:8080/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -104,9 +115,16 @@ export const AuthProvider = ({ children }) => {
       setUser({ username, id: userId, profileIcon: profileIcon || '' });
       setError(null);
       console.log('User after register:', { username, id: userId, profileIcon });
+      if (!profileIcon) {
+        setError('No profile icon set. Upload an image in your profile settings.');
+      }
     } catch (error) {
-      console.error('Register error:', error.response?.data || error.message);
-      throw error;
+      const message = error.response?.status === 409 ? 'Username or email already exists.' :
+                      error.response?.status === 400 ? 'Invalid registration data.' :
+                      'Registration failed. Please try again.';
+      console.error('Register error:', message);
+      setError(message);
+      throw new Error(message);
     }
   };
 
@@ -117,6 +135,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('profileIcon');
+    setError(null);
     console.log('Logged out, user state:', null);
   };
 

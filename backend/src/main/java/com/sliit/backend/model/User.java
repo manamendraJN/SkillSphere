@@ -13,11 +13,15 @@ public class User {
     private String profileIcon; // Base64-encoded image string
 
     // Constructors
-    public User() {}
+    public User() {
+        this.profileIcon = ""; // Initialize to empty string
+    }
+
     public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.profileIcon = ""; // Initialize to empty string
     }
 
     // Getters and Setters
@@ -30,5 +34,5 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getProfileIcon() { return profileIcon; }
-    public void setProfileIcon(String profileIcon) { this.profileIcon = profileIcon; }
+    public void setProfileIcon(String profileIcon) { this.profileIcon = profileIcon != null ? profileIcon : ""; }
 }

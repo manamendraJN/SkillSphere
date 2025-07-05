@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Key, Trash2, CheckCircle, User, Image } from 'lucide-react';
+import { AlertCircle, Key, Trash2, CheckCircle, User, Image as ImageIcon } from 'lucide-react';
 
 const Profile = () => {
   const { user, token, logout } = useContext(AuthContext);
@@ -23,7 +23,7 @@ const Profile = () => {
       return;
     }
 
-    console.log('Fetching profile with token:', token);
+    console.log('Fetching profile with token');
 
     const fetchProfile = async () => {
       try {
@@ -31,21 +31,31 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('Profile fetch successful:', response.data);
+        const profileIcon = response.data.profileIcon || '';
         setProfile({
           username: response.data.username,
           email: response.data.email,
-          profileIcon: response.data.profileIcon || '',
+          profileIcon,
         });
-        localStorage.setItem('profileIcon', response.data.profileIcon || '');
+        localStorage.setItem('profileIcon', profileIcon);
+        if (!profileIcon) {
+          setError('No profile icon set. Upload an image to personalize your profile.');
+        }
       } catch (err) {
-        const errorMessage = err.response?.data || err.message;
+        const errorMessage = err.response?.status === 401 ? 'Session expired. Please log in again.' :
+                             err.response?.status === 403 ? 'Invalid token. Please log in again.' :
+                             'Failed to fetch profile: ' + (err.response?.data || err.message);
         console.error('Profile fetch failed:', errorMessage);
-        setError('Failed to fetch profile: ' + errorMessage);
+        setError(errorMessage);
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          logout();
+          navigate('/login');
+        }
       }
     };
 
     fetchProfile();
-  }, [user, token, navigate]);
+  }, [user, token, navigate, logout]);
 
   const validateInputs = () => {
     const errors = { newPassword: false, confirmPassword: false };
@@ -65,23 +75,37 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        setError('Please upload a valid image file');
+        setError('Please upload a valid image file (png, jpg, jpeg, gif)');
         return;
       }
       if (file.size > 2 * 1024 * 1024) { // 2MB limit
         setError('Image size must be less than 2MB');
         return;
       }
-      // Check image resolution
-      const img = new Image();
-      img.onload = () => {
-        if (img.width < 128 || img.height < 128) {
-          setError('Image resolution must be at least 128x128 pixels for clarity');
-          return;
-        }
+
+      // Check if running in a browser environment
+      if (typeof window !== 'undefined' && window.Image) {
+        const img = new window.Image();
+        img.onload = () => {
+          if (img.width < 128 || img.height < 128) {
+            setError('Image resolution must be at least 128x128 pixels for clarity');
+            return;
+          }
+          setProfileIconFile(file);
+          setError('');
+          setSuccess('Image selected. Save to update your profile.');
+        };
+        img.onerror = () => {
+          setError('Failed to load image. Please try another file.');
+        };
+        img.src = URL.createObjectURL(file);
+      } else {
+        // Fallback: Skip resolution check if Image is unavailable
+        console.warn('Image constructor unavailable; skipping resolution check');
         setProfileIconFile(file);
-      };
-      img.src = URL.createObjectURL(file);
+        setError('');
+        setSuccess('Image selected (resolution check skipped). Save to update your profile.');
+      }
     }
   };
 
@@ -92,7 +116,7 @@ const Profile = () => {
 
     if (updateForm.newPassword && !validateInputs()) return;
 
-    console.log('Sending profile update with token:', token);
+    console.log('Sending profile update with token');
 
     try {
       let profileIconBase64 = profile.profileIcon;
@@ -102,14 +126,23 @@ const Profile = () => {
           reader.onload = () => resolve(reader.result);
           reader.readAsDataURL(profileIconFile);
         });
+        console.log('Generated Base64 for profile icon:', profileIconBase64.substring(0, 50) + '...'); // Log first 50 chars
+        // Validate Base64 format
+        if (!profileIconBase64.match(/^data:image\/(png|jpg|jpeg|gif);base64,[A-Za-z0-9+/=]+$/)) {
+          setError('Invalid image format. Please upload a valid image.');
+          return;
+        }
+      } else {
+        console.log('No new profile icon selected; using existing:', profileIconBase64);
       }
 
       const updateData = {
         username: profile.username,
         email: profile.email,
         password: updateForm.newPassword || undefined,
-        profileIcon: profileIconBase64,
+        profileIcon: profileIconBase64 || '',
       };
+      console.log('Sending update data:', updateData);
 
       const response = await axios.put(
         'http://localhost:8080/api/auth/profile',
@@ -123,11 +156,21 @@ const Profile = () => {
       setUpdateForm({ previousPassword: '', newPassword: '', confirmPassword: '' });
       setInputErrors({ newPassword: false, confirmPassword: false });
       setProfileIconFile(null);
-      setProfile((prev) => ({ ...prev, profileIcon: profileIconBase64 }));
+      setProfile((prev) => ({ ...prev, profileIcon: profileIconBase64 || '' }));
+      if (!profileIconBase64) {
+        setError('No profile icon set. Upload an image to personalize your profile.');
+      }
     } catch (err) {
-      const errorMessage = err.response?.data || err.message;
+      const errorMessage = err.response?.status === 401 ? 'Session expired. Please log in again.' :
+                           err.response?.status === 403 ? 'Invalid token. Please log in again.' :
+                           err.response?.status === 400 ? 'Invalid profile icon format.' :
+                           'Failed to update profile: ' + (err.response?.data || err.message);
       console.error('Profile update failed:', errorMessage);
       setError(errorMessage);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        logout();
+        navigate('/login');
+      }
     }
   };
 
@@ -136,7 +179,7 @@ const Profile = () => {
     setError('');
     setSuccess('');
 
-    console.log('Sending delete request with token:', token);
+    console.log('Sending delete request with token');
 
     try {
       await axios.delete('http://localhost:8080/api/auth/profile', {
@@ -146,9 +189,15 @@ const Profile = () => {
       logout();
       navigate('/login');
     } catch (err) {
-      const errorMessage = err.response?.data || err.message;
+      const errorMessage = err.response?.status === 401 ? 'Session expired. Please log in again.' :
+                           err.response?.status === 403 ? 'Invalid token. Please log in again.' :
+                           'Failed to delete account: ' + (err.response?.data || err.message);
       console.error('Account deletion failed:', errorMessage);
-      setError('Failed to delete account: ' + errorMessage);
+      setError(errorMessage);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        logout();
+        navigate('/login');
+      }
     }
   };
 
@@ -181,7 +230,6 @@ const Profile = () => {
       <div className="bg-white rounded-3xl shadow-2xl border border-teal-200 p-8 w-full relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M30 0L0 30l30 30 30-30L30 0z%22 fill=%22%23e6fffa%22 fill-opacity=%220.1%22/%3E%3C/svg%3E')] opacity-50 pointer-events-none"></div>
 
-        {/* Header with Centered Avatar */}
         <div className="flex flex-col items-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
@@ -202,7 +250,6 @@ const Profile = () => {
           </h2>
         </div>
 
-        {/* Image Preview Modal */}
         <AnimatePresence>
           {isImageModalOpen && profile.profileIcon && (
             <motion.div
